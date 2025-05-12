@@ -69,7 +69,7 @@
         <zeebe-test-container.version>3.0.0</zeebe-test-container.version>
         <zeebe-test-util.version>1.0.0</zeebe-test-util.version>
         <zeebe-util.version>1.0.0</zeebe-util.version>
-        <zeebe.version>8.7.0-alpha2</zeebe.version>
+        <zeebe.version>8.8.0-alpha4</zeebe.version>
         <sonar.organization>zelldon-github</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <version.jib>3.4.5</version.jib>

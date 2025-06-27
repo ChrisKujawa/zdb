@@ -41,7 +41,7 @@
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <zeebe-test-container.version>3.6.5</zeebe-test-container.version>
+        <zeebe-test-container.version>3.6.6</zeebe-test-container.version>
         <version.awaitility>4.3.0</version.awaitility>
         <version.jackson>2.13.0</version.jackson>
         <jackson-databind.version>2.13.0</jackson-databind.version>

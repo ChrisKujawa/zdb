@@ -210,10 +210,6 @@
                     <groupId>org.apache.commons</groupId>
                     <artifactId>commons-math3</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>io.camunda</groupId>
-                    <artifactId>zeebe-atomix-utils</artifactId>
-                </exclusion>
                 <!--                    <exclusion>-->
                 <!--                        <groupId>com.google.guava</groupId>-->
                 <!--                        <artifactId>guava</artifactId>-->

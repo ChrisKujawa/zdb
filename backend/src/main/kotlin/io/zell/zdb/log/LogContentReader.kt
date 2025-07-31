@@ -22,6 +22,7 @@ import io.camunda.zeebe.protocol.impl.record.RecordMetadata
 import io.camunda.zeebe.protocol.record.RecordType
 import io.zell.zdb.log.records.*
 import io.zell.zdb.log.records.old.RecordMetadataBefore83
+import io.zell.zdb.raft.RaftLogReader
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.agrona.concurrent.UnsafeBuffer

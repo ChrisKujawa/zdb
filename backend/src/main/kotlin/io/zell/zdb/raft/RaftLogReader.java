@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.zell.zdb.log;
+package io.zell.zdb.raft;
 
 
 import io.zell.zdb.log.records.IndexedRaftLogEntryImpl;

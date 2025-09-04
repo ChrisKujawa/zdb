@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>25-ea+21</version>
+            <version>26-ea+3</version>
         </dependency>
 
         <dependency>

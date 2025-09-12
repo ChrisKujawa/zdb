@@ -17,6 +17,7 @@ package io.zell.zdb;
 
 import io.zell.zdb.ZeebeDebugger.VersionProvider;
 import io.zell.zdb.journal.LogCommand;
+import io.zell.zdb.journal.RaftCommand;
 import io.zell.zdb.state.InstanceCommand;
 import io.zell.zdb.state.ProcessCommand;
 import io.zell.zdb.state.StateCommand;
@@ -38,6 +39,7 @@ import picocli.CommandLine.RunLast;
       InstanceCommand.class,
       IncidentCommand.class,
       LogCommand.class,
+      RaftCommand.class,
       StateCommand.class
     })
 public class ZeebeDebugger implements Callable<Integer> {

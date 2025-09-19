@@ -44,6 +44,7 @@ import io.zell.zdb.log.records.ApplicationRecord;
 import io.zell.zdb.log.records.PersistedRecord;
 import io.zell.zdb.log.records.RaftRecord;
 import io.zell.zdb.log.records.Record;
+import io.zell.zdb.raft.RaftStatus;
 import io.zell.zdb.state.ZeebeDbReader;
 import io.zell.zdb.state.incident.IncidentState;
 import io.zell.zdb.state.instance.InstanceState;
@@ -52,6 +53,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.StreamSupport;
 import org.agrona.concurrent.UnsafeBuffer;
@@ -180,6 +182,41 @@ public class Version86Test {
     }
 
     @Test
+    public void shouldReadMetaStore() {
+      // given
+      final var dataPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var raftStatus = new RaftStatus(dataPath);
+
+      // when
+      final var status = raftStatus.details();
+
+      // then
+      assertThat(status.meta().commitIndex())
+          .as("no commit index in the meta store for 8.6")
+          .isZero();
+      assertThat(status.meta().term()).isEqualTo(1);
+      assertThat(status.meta().lastFlushedIndex()).isEqualTo(15);
+      // we can't easily compare the time, but at least we can make sure it's between certain bounds
+      // indicating a valid
+      // value
+      assertThat(status.config().term()).isZero();
+      assertThat(status.config().force()).isFalse();
+      assertThat(status.config().requiresJointConsensus()).isFalse();
+      assertThat(status.config().time())
+          .isBetween(Instant.now().minusSeconds(60).toEpochMilli(), Instant.now().toEpochMilli());
+      // we don't compare the member's last updated, again because we can't exactly pinpoint the
+      // instant in time it was
+      // last updated
+      assertThat(status.config().newMembers())
+          .hasSize(1)
+          .first()
+          .returns("0", RaftStatus.RaftMemberDetails::id)
+          .returns("ACTIVE", RaftStatus.RaftMemberDetails::type)
+          .returns(384918240, RaftStatus.RaftMemberDetails::hash);
+      assertThat(status.config().oldMembers()).isEmpty();
+    }
+
+    @Test
     public void shouldReadStatusFromLog() {
       // given
       final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
@@ -276,7 +313,7 @@ public class Version86Test {
       // given
       final var expectedJson =
           OBJECT_MAPPER.readTree(
-              """
+"""
                     {"position":63,"sourceRecordPosition":62,"key":-1,"recordType":"COMMAND_REJECTION",
                     "valueType":"PROCESS_INSTANCE_CREATION","intent":"CREATE","rejectionType":"NOT_FOUND",
                     "rejectionReason":"Expected to find process definition with process ID 'nonExisting', but none found",
@@ -320,7 +357,7 @@ public class Version86Test {
       // given
       final var expectedJson =
           OBJECT_MAPPER.readTree(
-              """
+"""
                     {"position":12,"sourceRecordPosition":5,"key":2251799813685252,"recordType":"EVENT",
                     "valueType":"PROCESS_INSTANCE","intent":"ELEMENT_ACTIVATED","requestId":-1,
                     "requestStreamId":-2147483648,"protocolVersion":5,"brokerVersion":"8.6.0","recordVersion":1,

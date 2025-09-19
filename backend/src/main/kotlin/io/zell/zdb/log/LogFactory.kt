@@ -16,6 +16,8 @@
 package io.zell.zdb.log
 
 import io.zell.zdb.journal.file.SegmentedReadOnlyJournal
+import io.zell.zdb.raft.RaftLogReader
+import io.zell.zdb.raft.RaftLogUncommittedReader
 import java.nio.file.Path
 
 class LogFactory {

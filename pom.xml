@@ -75,7 +75,7 @@
         <version.kryo>4.0.2</version.kryo>
         <version.log4j>2.14.1</version.log4j>
         <version.picocli>4.7.7</version.picocli>
-        <zeebe-test-container.version>3.6.5</zeebe-test-container.version>
+        <zeebe-test-container.version>3.6.8</zeebe-test-container.version>
     </properties>
 
     <dependencyManagement>

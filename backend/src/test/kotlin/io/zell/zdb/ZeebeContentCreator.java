@@ -16,6 +16,7 @@
 package io.zell.zdb;
 
 import io.camunda.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.response.DeploymentEvent;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
 import io.camunda.zeebe.model.bpmn.Bpmn;
@@ -24,10 +25,15 @@ import io.camunda.zeebe.model.bpmn.BpmnModelInstance;
 import java.time.Duration;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class ZeebeContentCreator {
 
     private final BpmnModelInstance processModel;
-
+    public long responseJobKey;
+    public long elementInstanceKey;
+    public long firstProcessKey;
+    public long secondProcessKey;
 
     public ZeebeContentCreator(BpmnModelInstance processModel) {
         this.processModel = processModel;
@@ -61,6 +67,9 @@ public class ZeebeContentCreator {
                 .addProcessModel(SIMPLE_PROCESS, "simple.bpmn")
                 .send()
                 .join();
+        assertThat(deploymentEvent.getProcesses()).hasSize(2);
+        firstProcessKey = deploymentEvent.getProcesses().get(0).getProcessDefinitionKey();
+        secondProcessKey = deploymentEvent.getProcesses().get(1).getProcessDefinitionKey();
 
         processInstanceEvent = client
                 .newCreateInstanceCommand()
@@ -91,13 +100,17 @@ public class ZeebeContentCreator {
                 .send()
                 .join();
 
-        var responseJobKey = 0L;
+        responseJobKey = 0L;
+        elementInstanceKey = 0L;
         do {
             final var activateJobsResponse = client.newActivateJobsCommand().jobType("type")
                     .maxJobsToActivate(1).send()
                     .join();
             if (activateJobsResponse != null && !activateJobsResponse.getJobs().isEmpty()) {
-                responseJobKey = activateJobsResponse.getJobs().get(0).getKey();
+                final var activatedJob = activateJobsResponse.getJobs().get(0);
+                elementInstanceKey = activatedJob.getElementInstanceKey();
+                responseJobKey = activatedJob.getKey();
+
             }
         } while (responseJobKey <= 0);
 

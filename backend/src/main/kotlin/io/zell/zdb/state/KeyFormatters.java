@@ -122,6 +122,24 @@ public abstract class KeyFormatters {
     FORMATTERS.put(ZbColumnFamilies.USER_TASK_STATES, KeyFormatter.DbValueFormatter.of("l"));
     FORMATTERS.put(
         ZbColumnFamilies.COMPENSATION_SUBSCRIPTION, KeyFormatter.DbValueFormatter.of("sll"));
+      FORMATTERS.put(
+              ZbColumnFamilies.ENTITIES_BY_RELATION, KeyFormatter.DbValueFormatter.of("bsbs"));
+      FORMATTERS.put(
+              ZbColumnFamilies.RELATIONS_BY_ENTITY, KeyFormatter.DbValueFormatter.of("bsbs"));
+      FORMATTERS.put(
+              ZbColumnFamilies.ROLES, KeyFormatter.DbValueFormatter.of("s"));
+      FORMATTERS.put(
+              ZbColumnFamilies.MAPPING_RULES, KeyFormatter.DbValueFormatter.of("ss"));
+      FORMATTERS.put(
+              ZbColumnFamilies.CLAIM_BY_ID, KeyFormatter.DbValueFormatter.of("s"));
+      FORMATTERS.put(
+              ZbColumnFamilies.PERMISSIONS, KeyFormatter.DbValueFormatter.of("sss"));
+      FORMATTERS.put(
+              ZbColumnFamilies.AUTHORIZATIONS, KeyFormatter.DbValueFormatter.of("l"));
+      FORMATTERS.put(
+              ZbColumnFamilies.AUTHORIZATION_KEYS_BY_OWNER, KeyFormatter.DbValueFormatter.of("ss"));
+      FORMATTERS.put(
+              ZbColumnFamilies.USAGE_METRICS, KeyFormatter.DbValueFormatter.of("b"));
   }
 
   public abstract KeyFormatter forColumnFamily(ZbColumnFamilies columnFamily);

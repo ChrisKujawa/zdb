@@ -44,6 +44,7 @@ import io.zell.zdb.state.ZeebeDbReader;
 import io.zell.zdb.state.incident.IncidentState;
 import io.zell.zdb.state.instance.InstanceState;
 import io.zell.zdb.state.process.ProcessState;
+import io.zell.zdb.v84.Version84Test;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
@@ -869,7 +870,7 @@ public class Version85Test {
         private static final File TEMP_DIR = TestUtils.newTmpFolder(ZeebeStateTest.class);
         private static final ZeebeContentCreator zeebeContentCreator = new ZeebeContentCreator(PROCESS);
         @Container
-        public static ZeebeContainer zeebeContainer = new ZeebeContainer(DockerImageName.parse("camunda/zeebe:8.3.0"))
+        public static ZeebeContainer zeebeContainer = new ZeebeContainer(DOCKER_IMAGE)
                 /* run the container with the current user, in order to access the data and delete it later */
                 .withCreateContainerCmdModifier(cmd -> cmd.withUser(TestUtils.getRunAsUser()))
                 // with 8.2 we disabled WAL per default
@@ -923,7 +924,7 @@ public class Version85Test {
             experimental.visitDBWithJsonValues(jsonVisitor);
 
             // then
-            assertThat(incidentMap).containsValue("{\"incidentRecord\":{\"errorType\":\"EXTRACT_VALUE_ERROR\",\"errorMessage\":\"Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.\",\"bpmnProcessId\":\"process\",\"processDefinitionKey\":2251799813685249,\"processInstanceKey\":2251799813685252,\"elementId\":\"incidentTask\",\"elementInstanceKey\":2251799813685261,\"jobKey\":-1,\"variableScopeKey\":2251799813685261,\"tenantId\":\"<default>\"}}");
+            assertThat(incidentMap).containsValue("{\"incidentRecord\":{\"errorType\":\"EXTRACT_VALUE_ERROR\",\"errorMessage\":\"Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:\\n[NO_VARIABLE_FOUND] No variable found with name 'foo'\",\"bpmnProcessId\":\"process\",\"processDefinitionKey\":2251799813685249,\"processInstanceKey\":2251799813685252,\"elementId\":\"incidentTask\",\"elementInstanceKey\":2251799813685261,\"jobKey\":-1,\"variableScopeKey\":2251799813685261,\"tenantId\":\"<default>\"}}");
         }
 
         @Test
@@ -1156,11 +1157,12 @@ public class Version85Test {
             assertThat(incident.get("processInstanceKey").asLong()).isEqualTo(processInstanceEvent.getProcessInstanceKey());
             assertThat(incident.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
             assertThat(incident.get("elementId").asText()).isEqualTo("incidentTask");
-            assertThat(incident.get("errorMessage").asText()).isEqualTo("Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.");
+            assertThat(incident.get("errorMessage").asText()).isEqualTo("""
+                    Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:
+                    [NO_VARIABLE_FOUND] No variable found with name 'foo'""");
             assertThat(incident.get("errorType").asText()).isEqualTo(ErrorType.EXTRACT_VALUE_ERROR.toString());
             assertThat(incident.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
             assertThat(incident.get("jobKey").asLong()).isEqualTo(-1);
-
         }
 
         @Test
@@ -1187,7 +1189,9 @@ public class Version85Test {
             assertThat(incidentRecord.get("processInstanceKey").asLong()).isEqualTo(processInstanceEvent.getProcessInstanceKey());
             assertThat(incidentRecord.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
             assertThat(incidentRecord.get("elementId").asText()).isEqualTo("incidentTask");
-            assertThat(incidentRecord.get("errorMessage").asText()).isEqualTo("Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.");
+            assertThat(incidentRecord.get("errorMessage").asText()).isEqualTo("""
+                    Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:
+                    [NO_VARIABLE_FOUND] No variable found with name 'foo'""");
             assertThat(incidentRecord.get("errorType").asText()).isEqualTo(ErrorType.EXTRACT_VALUE_ERROR.toString());
             assertThat(incidentRecord.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
             assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1);

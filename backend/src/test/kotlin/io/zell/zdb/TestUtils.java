@@ -19,6 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class TestUtils {
 
   public static final String CONTAINER_PATH = "/usr/local/zeebe/data/";
+  public static final String CONTAINER_PATH_88 = "/usr/local/camunda/data/";
   public static final String TIMESTAMP_REGEX = "\"timestamp\":[0-9]+,";
   private static final String TMP_FOLDER_FORMAT = "data-%s-%d";
   private TestUtils() {}

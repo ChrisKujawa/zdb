@@ -276,7 +276,7 @@ public class Version86Test {
       // given
       final var expectedJson =
           OBJECT_MAPPER.readTree(
-              """
+"""
                     {"position":63,"sourceRecordPosition":62,"key":-1,"recordType":"COMMAND_REJECTION",
                     "valueType":"PROCESS_INSTANCE_CREATION","intent":"CREATE","rejectionType":"NOT_FOUND",
                     "rejectionReason":"Expected to find process definition with process ID 'nonExisting', but none found",
@@ -320,7 +320,7 @@ public class Version86Test {
       // given
       final var expectedJson =
           OBJECT_MAPPER.readTree(
-              """
+"""
                     {"position":12,"sourceRecordPosition":5,"key":2251799813685252,"recordType":"EVENT",
                     "valueType":"PROCESS_INSTANCE","intent":"ELEMENT_ACTIVATED","requestId":-1,
                     "requestStreamId":-2147483648,"protocolVersion":5,"brokerVersion":"8.6.0","recordVersion":1,
@@ -905,7 +905,7 @@ public class Version86Test {
 
     @Container
     public static ZeebeContainer zeebeContainer =
-        new ZeebeContainer(DockerImageName.parse("camunda/zeebe:8.3.0"))
+        new ZeebeContainer(DOCKER_IMAGE)
             /* run the container with the current user, in order to access the data and delete it later */
             .withCreateContainerCmdModifier(cmd -> cmd.withUser(TestUtils.getRunAsUser()))
             // with 8.2 we disabled WAL per default
@@ -964,7 +964,7 @@ public class Version86Test {
       // then
       assertThat(incidentMap)
           .containsValue(
-              "{\"incidentRecord\":{\"errorType\":\"EXTRACT_VALUE_ERROR\",\"errorMessage\":\"Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.\",\"bpmnProcessId\":\"process\",\"processDefinitionKey\":2251799813685249,\"processInstanceKey\":2251799813685252,\"elementId\":\"incidentTask\",\"elementInstanceKey\":2251799813685261,\"jobKey\":-1,\"variableScopeKey\":2251799813685261,\"tenantId\":\"<default>\"}}");
+              "{\"incidentRecord\":{\"errorType\":\"EXTRACT_VALUE_ERROR\",\"errorMessage\":\"Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:\\n[NO_VARIABLE_FOUND] No variable found with name 'foo'\",\"bpmnProcessId\":\"process\",\"processDefinitionKey\":2251799813685250,\"processInstanceKey\":2251799813685252,\"elementId\":\"incidentTask\",\"elementInstanceKey\":2251799813685261,\"jobKey\":-1,\"variableScopeKey\":2251799813685261,\"tenantId\":\"<default>\",\"elementInstancePath\":[[2251799813685252,2251799813685261]],\"processDefinitionPath\":[2251799813685250],\"callingElementPath\":[]}}");
     }
 
     @Test
@@ -982,7 +982,7 @@ public class Version86Test {
                   valueJson));
 
       // then
-      assertThat(processes).containsKey(2251799813685249L).containsKey(2251799813685250L);
+      assertThat(processes).containsKey(2251799813685251L).containsKey(2251799813685250L);
     }
 
     @Test
@@ -1246,7 +1246,10 @@ public class Version86Test {
       assertThat(incident.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
       assertThat(incident.get("elementId").asText()).isEqualTo("incidentTask");
       assertThat(incident.get("errorMessage").asText())
-          .isEqualTo("Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.");
+          .isEqualTo(
+              """
+                    Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:
+                    [NO_VARIABLE_FOUND] No variable found with name 'foo'""");
       assertThat(incident.get("errorType").asText())
           .isEqualTo(ErrorType.EXTRACT_VALUE_ERROR.toString());
       assertThat(incident.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
@@ -1280,11 +1283,13 @@ public class Version86Test {
       assertThat(incidentRecord.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
       assertThat(incidentRecord.get("elementId").asText()).isEqualTo("incidentTask");
       assertThat(incidentRecord.get("errorMessage").asText())
-          .isEqualTo("Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.");
+          .isEqualTo(
+              """
+                    Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:
+                    [NO_VARIABLE_FOUND] No variable found with name 'foo'""");
       assertThat(incidentRecord.get("errorType").asText())
           .isEqualTo(ErrorType.EXTRACT_VALUE_ERROR.toString());
       assertThat(incidentRecord.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
-      assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1);
       assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1);
     }
   }

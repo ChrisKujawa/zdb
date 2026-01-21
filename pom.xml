@@ -54,7 +54,7 @@
         <kotlin-test-junit5.version>1.4.10</kotlin-test-junit5.version>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
-        <kotlin.serialization.version>1.9.0</kotlin.serialization.version>
+        <kotlin.serialization.version>1.10.0</kotlin.serialization.version>
         <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>

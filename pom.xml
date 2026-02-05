@@ -42,7 +42,7 @@
     <properties>
         <bom.version.assertj>3.27.7</bom.version.assertj>
         <bom.version.junit>6.0.2</bom.version.junit>
-        <bom.version.kotlin>2.3.0</bom.version.kotlin>
+        <bom.version.kotlin>2.3.10</bom.version.kotlin>
         <bom.version.slf4j>2.0.17</bom.version.slf4j>
         <bom.version.testcontainers>1.21.4</bom.version.testcontainers>
         <bom.version.zeebe>8.8.10</bom.version.zeebe>

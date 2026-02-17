@@ -45,7 +45,7 @@
         <bom.version.kotlin>2.3.10</bom.version.kotlin>
         <bom.version.slf4j>2.0.17</bom.version.slf4j>
         <bom.version.testcontainers>1.21.4</bom.version.testcontainers>
-        <bom.version.zeebe>8.8.11</bom.version.zeebe>
+        <bom.version.zeebe>8.8.12</bom.version.zeebe>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jackson-databind.version>2.13.0</jackson-databind.version>
         <javafx.version>25-ea+21</javafx.version>

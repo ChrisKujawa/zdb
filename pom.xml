@@ -42,19 +42,12 @@
     <properties>
         <bom.version.assertj>3.27.7</bom.version.assertj>
         <bom.version.junit>6.0.3</bom.version.junit>
-        <bom.version.kotlin>2.3.20</bom.version.kotlin>
         <bom.version.slf4j>2.0.17</bom.version.slf4j>
         <bom.version.testcontainers>1.21.4</bom.version.testcontainers>
         <bom.version.zeebe>8.8.12</bom.version.zeebe>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jackson-databind.version>2.13.0</jackson-databind.version>
         <javafx.version>25-ea+21</javafx.version>
-        <kotlin-maven-plugin.version>1.4.32</kotlin-maven-plugin.version>
-        <kotlin-stdlib-jdk8.version>1.4.10</kotlin-stdlib-jdk8.version>
-        <kotlin-test-junit5.version>1.4.10</kotlin-test-junit5.version>
-        <kotlin.code.style>official</kotlin.code.style>
-        <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
-        <kotlin.serialization.version>1.10.0</kotlin.serialization.version>
         <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
@@ -80,14 +73,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-bom</artifactId>
-                <version>${bom.version.kotlin}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
             <dependency>
                 <groupId>io.camunda</groupId>
                 <artifactId>zeebe-bom</artifactId>

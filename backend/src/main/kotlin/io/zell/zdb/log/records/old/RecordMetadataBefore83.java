@@ -98,7 +98,7 @@ public final class RecordMetadataBefore83 implements BufferWriter, BufferReader 
   }
 
   @Override
-  public void write(final MutableDirectBuffer buffer, int offset) {
+  public int write(final MutableDirectBuffer buffer, int offset) {
     headerEncoder.wrap(buffer, offset);
 
     headerEncoder
@@ -133,6 +133,8 @@ public final class RecordMetadataBefore83 implements BufferWriter, BufferReader 
     } else {
       buffer.putInt(offset, 0);
     }
+
+    return getLength();
   }
 
   public long getRequestId() {

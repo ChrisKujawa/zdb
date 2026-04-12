@@ -112,7 +112,7 @@ public class Version81Test {
     @Test
     public void shouldReadStatusFromLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logStatus = new LogStatus(logPath);
 
       // when
@@ -162,7 +162,7 @@ public class Version81Test {
     @Test
     public void shouldReadStatusFromLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logStatus = new LogStatus(logPath);
 
       // when
@@ -186,7 +186,7 @@ public class Version81Test {
     @Test
     public void shouldThrowWhenReadStatusFromNonExistingLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(new File("/tmp/doesntExist"), "1");
+      final var logPath = ZeebePaths.getLogPath(new File("/tmp/doesntExist"), "1");
 
       // when - throw
       assertThatThrownBy(() -> new LogStatus(logPath))
@@ -197,7 +197,7 @@ public class Version81Test {
     @Test
     public void shouldBuildLogContent() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -214,7 +214,7 @@ public class Version81Test {
     @Test
     public void shouldReadLogContentWithIterator() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
 
@@ -228,7 +228,7 @@ public class Version81Test {
     @Test
     public void shouldReadRejection() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -266,7 +266,7 @@ public class Version81Test {
                     "startInstructions":[]}}
                     }
 """);
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -306,7 +306,7 @@ public class Version81Test {
                     "recordValue":{"bpmnProcessId":"process","version":1,"processDefinitionKey":2251799813685249,
                     "processInstanceKey":2251799813685252,"elementId":"process","flowScopeKey":-1,
                     "bpmnElementType":"PROCESS","parentProcessInstanceKey":-1,"parentElementInstanceKey":-1}}""");
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       logContentReader.filterForProcessInstance(
           zeebeContentCreator.processInstanceEvent.getProcessInstanceKey());
@@ -337,7 +337,7 @@ public class Version81Test {
     @Test
     public void shouldSkipFirstPartOfLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(10);
@@ -378,7 +378,7 @@ public class Version81Test {
     @Test
     public void shouldNotSkipIfNegativeSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(-1);
@@ -393,7 +393,7 @@ public class Version81Test {
     @Test
     public void shouldNotSkipIfZeroSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(0);
@@ -408,7 +408,7 @@ public class Version81Test {
     @Test
     public void shouldSeekToEndOfLogIfNoExistingSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(Long.MAX_VALUE);
@@ -447,7 +447,7 @@ public class Version81Test {
     @Test
     public void shouldLimitLogToPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(30);
@@ -486,7 +486,7 @@ public class Version81Test {
     @Test
     public void shouldLimitViaPositionExclusive() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(1);
@@ -506,7 +506,7 @@ public class Version81Test {
     @Test
     public void shouldConvertRecordToColumn() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(2);
@@ -533,7 +533,7 @@ public class Version81Test {
     @Test
     public void shouldWriteTableHeaderToStreamWhenNoDataFound() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var outputStream = new ByteArrayOutputStream();
       logContentReader.limitToPosition(30);
@@ -553,7 +553,7 @@ public class Version81Test {
     @Test
     public void shouldWriteTableToStream() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       final var outputStream = new ByteArrayOutputStream();
@@ -577,7 +577,7 @@ public class Version81Test {
     @Test
     public void shouldSeekAndLimitLogWithPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(5);
@@ -617,7 +617,7 @@ public class Version81Test {
     @Test
     public void shouldFilterWithProcessInstanceKey() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(2251799813685252L);
@@ -656,7 +656,7 @@ public class Version81Test {
     @Test
     public void shouldFilterWithNoExistingProcessInstanceKey() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(0xCAFE);
@@ -671,7 +671,7 @@ public class Version81Test {
     @Test
     public void shouldFilterWithProcessInstanceKeyAndSetBeginAndEndOfLogPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(2251799813685252L);
@@ -741,7 +741,7 @@ public class Version81Test {
     @Test
     public void shouldReturnLogContentAsDotFile() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
       final var content = logContentReader.readAll();
 
@@ -755,7 +755,7 @@ public class Version81Test {
     @Test
     public void shouldContainNoDuplicatesInLogContent() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -774,7 +774,7 @@ public class Version81Test {
     @Test
     public void shouldSearchPositionInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
       final var position = 1;
 
@@ -789,7 +789,7 @@ public class Version81Test {
     @Test
     public void shouldReturnNullOnNegPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -802,7 +802,7 @@ public class Version81Test {
     @Test
     public void shouldReturnNullOnToBigPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -815,7 +815,7 @@ public class Version81Test {
     @Test
     public void shouldSearchIndexInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
       final var index = 7;
 
@@ -829,7 +829,7 @@ public class Version81Test {
     @Test
     public void shouldNotReturnDuplicatesWhenSearchForIndexInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
       final var index = 7;
 
@@ -849,7 +849,7 @@ public class Version81Test {
     @Test
     public void shouldReturnNullOnNegIndex() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -862,7 +862,7 @@ public class Version81Test {
     @Test
     public void shouldReturnNullOnToBigIndex() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.getLogPath(TEMP_DIR, "1");
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -903,7 +903,7 @@ public class Version81Test {
     public void shouldCreateStatsForCompleteState() {
       // given
       final var experimental =
-          new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new ZeebeDbReader(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
 
       // when
       final var cfMap = experimental.stateStatistics();
@@ -920,7 +920,7 @@ public class Version81Test {
     public void shouldVisitValuesAsJson() {
       // given
       final var experimental =
-          new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new ZeebeDbReader(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var incidentMap = new HashMap<String, String>();
       final ZeebeDbReader.JsonValueVisitor jsonVisitor =
           (cf, k, v) -> {
@@ -941,7 +941,7 @@ public class Version81Test {
     @Test
     public void shouldListProcesses() {
       // given
-      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new ProcessState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var processes = new HashMap<Long, String>();
 
       // when
@@ -959,7 +959,7 @@ public class Version81Test {
     public void shouldGetProcessDetails() throws JsonProcessingException {
       // given
       final var processes = new ArrayList<String>();
-      final Path runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
+      final Path runtimePath = ZeebePaths.getRuntimePath(TEMP_DIR, "1");
       final var processState = new ProcessState(runtimePath);
       final var returnedProcess = zeebeContentCreator.deploymentEvent.getProcesses().get(0);
 
@@ -992,7 +992,7 @@ public class Version81Test {
       final var processes = new ArrayList<String>();
 
       // when
-      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new ProcessState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       processState.processDetails(0xCAFE, (k, v) -> processes.add(v));
 
       // then
@@ -1007,7 +1007,7 @@ public class Version81Test {
 
       // when
       final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new InstanceState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var actualInstanceDetails = processState.getInstance(processInstanceKey);
 
       // then
@@ -1044,7 +1044,7 @@ public class Version81Test {
 
       // when
       final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new InstanceState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var actualInstanceDetails = processState.getInstance(elementInstanceKey);
 
       // then
@@ -1079,7 +1079,7 @@ public class Version81Test {
       final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
       final var elementInstanceKey = 2251799813685263L;
       final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new InstanceState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var list = new ArrayList<String>();
 
       // when
@@ -1165,7 +1165,7 @@ public class Version81Test {
 
       // when
       final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new InstanceState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var actualInstanceDetails = processState.getInstance(0xCAFE);
 
       // then
@@ -1176,7 +1176,7 @@ public class Version81Test {
     public void shouldFindInstancesWithPredicate() {
       // given
       final var instanceState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+          new InstanceState(ZeebePaths.getRuntimePath(TEMP_DIR, "1"));
       final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
       final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
       final var processes = new HashMap<Long, String>();
@@ -1197,7 +1197,7 @@ public class Version81Test {
     @Test
     public void shouldGetIncidentDetails() throws JsonProcessingException {
       // given
-      final var runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
+      final var runtimePath = ZeebePaths.getRuntimePath(TEMP_DIR, "1");
       final var incidentKey = 2251799813685264L;
       final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
 
@@ -1226,7 +1226,7 @@ public class Version81Test {
     @Test
     public void shouldListIncidentDetails() throws JsonProcessingException {
       // given
-      final var runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
+      final var runtimePath = ZeebePaths.getRuntimePath(TEMP_DIR, "1");
       final var incidentKey = 2251799813685264L;
       final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
       final var list = new ArrayList<String>();

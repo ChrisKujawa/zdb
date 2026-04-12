@@ -20,22 +20,18 @@ import java.nio.file.Path;
 
 public class ZeebePaths {
 
-    public static final Companion Companion = new Companion();
+    public static Path getRuntimePath(File dataPath, String partition) {
+        return dataPath.toPath()
+            .resolve("raft-partition")
+            .resolve("partitions")
+            .resolve(partition)
+            .resolve("runtime");
+    }
 
-    public static class Companion {
-        public Path getRuntimePath(File dataPath, String partition) {
-            return dataPath.toPath()
-                .resolve("raft-partition")
-                .resolve("partitions")
-                .resolve(partition)
-                .resolve("runtime");
-        }
-
-        public Path getLogPath(File dataPath, String partition) {
-            return dataPath.toPath()
-                .resolve("raft-partition")
-                .resolve("partitions")
-                .resolve(partition);
-        }
+    public static Path getLogPath(File dataPath, String partition) {
+        return dataPath.toPath()
+            .resolve("raft-partition")
+            .resolve("partitions")
+            .resolve(partition);
     }
 }

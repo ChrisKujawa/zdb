@@ -242,12 +242,12 @@ public class Version82Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> record.component8() != RejectionType.NULL_VAL)
+              .filter(record -> record.getRejectionType() != RejectionType.NULL_VAL)
               .findFirst();
 
       assertThat(rejection).isPresent();
-      assertThat(rejection.get().component8()).isEqualTo(RejectionType.NOT_FOUND);
-      assertThat(rejection.get().component9())
+      assertThat(rejection.get().getRejectionType()).isEqualTo(RejectionType.NOT_FOUND);
+      assertThat(rejection.get().getRejectionReason())
           .isEqualTo(
               "Expected to find process definition with process ID 'nonExisting', but none found");
     }
@@ -280,12 +280,12 @@ public class Version82Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> record.component8() != RejectionType.NULL_VAL)
+              .filter(record -> record.getRejectionType() != RejectionType.NULL_VAL)
               .findFirst();
 
       assertThat(rejection).isPresent();
-      assertThat(rejection.get().component8()).isEqualTo(RejectionType.NOT_FOUND);
-      assertThat(rejection.get().component9())
+      assertThat(rejection.get().getRejectionType()).isEqualTo(RejectionType.NOT_FOUND);
+      assertThat(rejection.get().getRejectionReason())
           .isEqualTo(
               "Expected to find process definition with process ID 'nonExisting', but none found");
 
@@ -321,8 +321,8 @@ public class Version82Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> record.component6() == ValueType.PROCESS_INSTANCE)
-              .filter(record -> record.component7() == ProcessInstanceIntent.ELEMENT_ACTIVATED)
+              .filter(record -> record.getValueType() == ValueType.PROCESS_INSTANCE)
+              .filter(record -> record.getIntent() == ProcessInstanceIntent.ELEMENT_ACTIVATED)
               .filter(record -> record.getPiRelatedValue() != null)
               .filter(
                   record ->

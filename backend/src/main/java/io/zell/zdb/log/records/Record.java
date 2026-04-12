@@ -155,17 +155,6 @@ public class Record {
         return piRelatedValue;
     }
 
-    // Kotlin data class componentN() backward compatibility
-    public long component1() { return position; }
-    public long component2() { return sourceRecordPosition; }
-    public long component3() { return timestamp; }
-    public long component4() { return key; }
-    public RecordType component5() { return recordType; }
-    public ValueType component6() { return valueType; }
-    public Intent component7() { return intent; }
-    public RejectionType component8() { return rejectionType; }
-    public String component9() { return rejectionReason; }
-
     @Override
     public String toString() {
         try {

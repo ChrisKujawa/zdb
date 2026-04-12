@@ -97,14 +97,14 @@ public class ApplicationRecord implements PersistedRecord {
 
         var piRelatedValue = record.getPiRelatedValue();
         if (piRelatedValue != null) {
-            if (piRelatedValue.getProcessInstanceKey() != null) {
+            if (piRelatedValue.processInstanceKey() != null) {
                 sb.append(separator)
-                        .append(piRelatedValue.getProcessInstanceKey())
+                        .append(piRelatedValue.processInstanceKey())
                         .append(separator);
             }
 
-            if (piRelatedValue.getBpmnElementType() != null) {
-                sb.append(piRelatedValue.getBpmnElementType())
+            if (piRelatedValue.bpmnElementType() != null) {
+                sb.append(piRelatedValue.bpmnElementType())
                         .append(separator);
             }
         }

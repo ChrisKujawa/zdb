@@ -367,7 +367,7 @@ public class Version84Test {
               .filter(record -> record.getPiRelatedValue() != null)
               .filter(
                   record ->
-                      record.getPiRelatedValue().getBpmnElementType() == BpmnElementType.PROCESS)
+                      record.getPiRelatedValue().bpmnElementType() == BpmnElementType.PROCESS)
               .findFirst();
 
       // then
@@ -1228,7 +1228,7 @@ public class Version84Test {
       // when
       instanceState.listProcessInstances(
           processInstanceRecordDetails ->
-              processInstanceRecordDetails.getBpmnProcessId().equals("process"),
+              processInstanceRecordDetails.bpmnProcessId().equals("process"),
           (key, valueJson) ->
               processes.put(
                   new UnsafeBuffer(key).getLong(Long.BYTES, ZeebeDbConstants.ZB_DB_BYTE_ORDER),

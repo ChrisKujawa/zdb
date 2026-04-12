@@ -15,36 +15,11 @@
  */
 package io.zell.zdb.log.records;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.camunda.zeebe.protocol.record.value.BpmnElementType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProcessInstanceRelatedValue {
-    private final Long processInstanceKey;
-    private final BpmnElementType bpmnElementType;
-    private final Long processDefinitionKey;
-
-    @JsonCreator
-    public ProcessInstanceRelatedValue(
-            @JsonProperty("processInstanceKey") Long processInstanceKey,
-            @JsonProperty("bpmnElementType") BpmnElementType bpmnElementType,
-            @JsonProperty("processDefinitionKey") Long processDefinitionKey) {
-        this.processInstanceKey = processInstanceKey;
-        this.bpmnElementType = bpmnElementType;
-        this.processDefinitionKey = processDefinitionKey;
-    }
-
-    public Long getProcessInstanceKey() {
-        return processInstanceKey;
-    }
-
-    public BpmnElementType getBpmnElementType() {
-        return bpmnElementType;
-    }
-
-    public Long getProcessDefinitionKey() {
-        return processDefinitionKey;
-    }
-}
+public record ProcessInstanceRelatedValue(
+    Long processInstanceKey,
+    BpmnElementType bpmnElementType,
+    Long processDefinitionKey) {}

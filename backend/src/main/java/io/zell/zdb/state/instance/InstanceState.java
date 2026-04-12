@@ -47,8 +47,8 @@ public class InstanceState {
                 (key, value) -> {
                     try {
                         var instanceDetails = objectMapper.readValue(value, InstanceDetails.class);
-                        var processInstanceRecord = instanceDetails.getElementRecord().getProcessInstanceRecord();
-                        if (processInstanceRecord.getBpmnElementType() == BpmnElementType.PROCESS
+                        var processInstanceRecord = instanceDetails.elementRecord().processInstanceRecord();
+                        if (processInstanceRecord.bpmnElementType() == BpmnElementType.PROCESS
                                 && predicate.test(processInstanceRecord)) {
                             visitor.visit(key, value);
                         }

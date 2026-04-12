@@ -15,20 +15,7 @@
  */
 package io.zell.zdb.state.incident;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class IncidentDetails {
-    private final long key;
-
-    @JsonCreator
-    public IncidentDetails(@JsonProperty("key") long key) {
-        this.key = key;
-    }
-
-    public long getKey() {
-        return key;
-    }
-}
+public record IncidentDetails(long key) {}

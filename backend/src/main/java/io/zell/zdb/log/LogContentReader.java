@@ -210,8 +210,8 @@ public class LogContentReader implements Iterator<PersistedRecord> {
                 record.getEntries().stream()
                         .map(Record::getPiRelatedValue)
                         .filter(v -> v != null)
-                        .filter(v -> v.getProcessInstanceKey() != null)
-                        .map(ProcessInstanceRelatedValue::getProcessInstanceKey)
+                        .filter(v -> v.processInstanceKey() != null)
+                        .map(ProcessInstanceRelatedValue::processInstanceKey)
                         .anyMatch(key -> key == instanceKey);
     }
 

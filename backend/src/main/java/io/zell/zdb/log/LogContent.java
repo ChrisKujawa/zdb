@@ -66,16 +66,16 @@ public class LogContent {
         if (entry.getValueType() == ValueType.PROCESS_INSTANCE) {
             var piRelatedValue = entry.getPiRelatedValue();
             if (piRelatedValue != null) {
-                if (piRelatedValue.getBpmnElementType() != null) {
-                    content.append("\\n").append(piRelatedValue.getBpmnElementType());
+                if (piRelatedValue.bpmnElementType() != null) {
+                    content.append("\\n").append(piRelatedValue.bpmnElementType());
                 }
 
-                if (piRelatedValue.getProcessInstanceKey() != null) {
-                    content.append("\\nPI Key: ").append(piRelatedValue.getProcessInstanceKey());
+                if (piRelatedValue.processInstanceKey() != null) {
+                    content.append("\\nPI Key: ").append(piRelatedValue.processInstanceKey());
                 }
 
-                if (piRelatedValue.getProcessDefinitionKey() != null) {
-                    content.append("\\nPD Key: ").append(piRelatedValue.getProcessDefinitionKey());
+                if (piRelatedValue.processDefinitionKey() != null) {
+                    content.append("\\nPD Key: ").append(piRelatedValue.processDefinitionKey());
                 }
             }
         }

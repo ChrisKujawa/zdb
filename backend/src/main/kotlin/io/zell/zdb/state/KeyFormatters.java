@@ -122,6 +122,9 @@ public abstract class KeyFormatters {
     FORMATTERS.put(ZbColumnFamilies.USER_TASK_STATES, KeyFormatter.DbValueFormatter.of("l"));
     FORMATTERS.put(
         ZbColumnFamilies.COMPENSATION_SUBSCRIPTION, KeyFormatter.DbValueFormatter.of("sll"));
+    FORMATTERS.put(
+        ZbColumnFamilies.PROCESS_DEFINITION_KEY_BY_PROCESS_ID_AND_DEPLOYMENT_KEY,
+        KeyFormatter.DbValueFormatter.of("ssl"));
       FORMATTERS.put(
               ZbColumnFamilies.ENTITIES_BY_RELATION, KeyFormatter.DbValueFormatter.of("bsbs"));
       FORMATTERS.put(

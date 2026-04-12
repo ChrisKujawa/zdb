@@ -298,12 +298,12 @@ public class Version86Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> record.getRejectionType() != RejectionType.NULL_VAL)
+              .filter(record -> record.rejectionType() != RejectionType.NULL_VAL)
               .findFirst();
 
       assertThat(rejection).isPresent();
-      assertThat(rejection.get().getRejectionType()).isEqualTo(RejectionType.NOT_FOUND);
-      assertThat(rejection.get().getRejectionReason())
+      assertThat(rejection.get().rejectionType()).isEqualTo(RejectionType.NOT_FOUND);
+      assertThat(rejection.get().rejectionReason())
           .isEqualTo(
               "Expected to find process definition with process ID 'nonExisting', but none found");
     }
@@ -337,12 +337,12 @@ public class Version86Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> !record.getRejectionType().equals(RejectionType.NULL_VAL.name()))
+              .filter(record -> !record.rejectionType().equals(RejectionType.NULL_VAL.name()))
               .findFirst();
 
       assertThat(rejection).isPresent();
-      assertThat(rejection.get().getRejectionType()).isEqualTo(RejectionType.NOT_FOUND);
-      assertThat(rejection.get().getRejectionReason())
+      assertThat(rejection.get().rejectionType()).isEqualTo(RejectionType.NOT_FOUND);
+      assertThat(rejection.get().rejectionReason())
           .isEqualTo(
               "Expected to find process definition with process ID 'nonExisting', but none found");
 
@@ -378,12 +378,12 @@ public class Version86Test {
               .filter(persistedRecord -> persistedRecord instanceof ApplicationRecord)
               .map(persistedRecord -> (ApplicationRecord) persistedRecord)
               .flatMap(applicationRecord -> applicationRecord.getEntries().stream())
-              .filter(record -> record.getValueType() == ValueType.PROCESS_INSTANCE)
-              .filter(record -> record.getIntent() == ProcessInstanceIntent.ELEMENT_ACTIVATED)
-              .filter(record -> record.getPiRelatedValue() != null)
+              .filter(record -> record.valueType() == ValueType.PROCESS_INSTANCE)
+              .filter(record -> record.intent() == ProcessInstanceIntent.ELEMENT_ACTIVATED)
+              .filter(record -> record.piRelatedValue() != null)
               .filter(
                   record ->
-                      record.getPiRelatedValue().bpmnElementType() == BpmnElementType.PROCESS)
+                      record.piRelatedValue().bpmnElementType() == BpmnElementType.PROCESS)
               .findFirst();
 
       // then
@@ -827,7 +827,7 @@ public class Version86Test {
           .filteredOn(ApplicationRecord.class::isInstance)
           .asInstanceOf(InstanceOfAssertFactories.list(ApplicationRecord.class))
           .flatExtracting(ApplicationRecord::getEntries)
-          .extracting(Record::getPosition)
+          .extracting(Record::position)
           .doesNotHaveDuplicates();
     }
 
@@ -843,7 +843,7 @@ public class Version86Test {
 
       // then
       assertThat(record).isNotNull();
-      assertThat(record.getPosition()).isEqualTo(position);
+      assertThat(record.position()).isEqualTo(position);
     }
 
     @Test
@@ -902,7 +902,7 @@ public class Version86Test {
           .asInstanceOf(InstanceOfAssertFactories.type(ApplicationRecord.class))
           .extracting(ApplicationRecord::getEntries)
           .asInstanceOf(InstanceOfAssertFactories.list(Record.class))
-          .extracting(Record::getPosition)
+          .extracting(Record::position)
           .doesNotHaveDuplicates();
     }
 

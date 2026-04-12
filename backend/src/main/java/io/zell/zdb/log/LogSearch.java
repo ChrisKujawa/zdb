@@ -45,7 +45,7 @@ public class LogSearch {
                     continue;
                 } else {
                     for (var record : applicationRecord.getEntries()) {
-                        if (record.getPosition() == position) {
+                        if (record.position() == position) {
                             return record;
                         }
                     }

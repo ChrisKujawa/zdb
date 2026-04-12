@@ -208,7 +208,7 @@ public class LogContentReader implements Iterator<PersistedRecord> {
     public void filterForProcessInstance(long instanceKey) {
         applicationRecordFilter = record ->
                 record.getEntries().stream()
-                        .map(Record::getPiRelatedValue)
+                        .map(Record::piRelatedValue)
                         .filter(v -> v != null)
                         .filter(v -> v.processInstanceKey() != null)
                         .map(ProcessInstanceRelatedValue::processInstanceKey)
@@ -218,7 +218,7 @@ public class LogContentReader implements Iterator<PersistedRecord> {
     public void filterForRejections() {
         applicationRecordFilter = record ->
                 record.getEntries().stream()
-                        .map(Record::getRecordType)
+                        .map(Record::recordType)
                         .anyMatch(type -> type == RecordType.COMMAND_REJECTION);
     }
 }

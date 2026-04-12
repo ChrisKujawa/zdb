@@ -57,14 +57,14 @@ public class LogContent {
     }
 
     private void addEventAsDotNode(Record entry, StringBuilder content) {
-        content.append(entry.getPosition())
+        content.append(entry.position())
                 .append(" [label=\"")
-                .append("\\n").append(entry.getRecordType())
-                .append("\\n").append(entry.getValueType().name())
-                .append("\\n").append(entry.getIntent().name());
+                .append("\\n").append(entry.recordType())
+                .append("\\n").append(entry.valueType().name())
+                .append("\\n").append(entry.intent().name());
 
-        if (entry.getValueType() == ValueType.PROCESS_INSTANCE) {
-            var piRelatedValue = entry.getPiRelatedValue();
+        if (entry.valueType() == ValueType.PROCESS_INSTANCE) {
+            var piRelatedValue = entry.piRelatedValue();
             if (piRelatedValue != null) {
                 if (piRelatedValue.bpmnElementType() != null) {
                     content.append("\\n").append(piRelatedValue.bpmnElementType());
@@ -81,14 +81,14 @@ public class LogContent {
         }
 
         content
-                .append("\\nKey: ").append(entry.getKey())
+                .append("\\nKey: ").append(entry.key())
                 .append("\"]")
                 .append(";")
                 .append(System.lineSeparator());
-        if (entry.getSourceRecordPosition() != -1L) {
-            content.append(entry.getPosition())
+        if (entry.sourceRecordPosition() != -1L) {
+            content.append(entry.position())
                     .append(" -> ")
-                    .append(entry.getSourceRecordPosition())
+                    .append(entry.sourceRecordPosition())
                     .append(";")
                     .append(System.lineSeparator());
         }

@@ -82,7 +82,7 @@ public class ProcessCommand implements Callable<Integer> {
                 new InstanceState(partitionPath)
                     .listProcessInstances(
                         processInstanceRecordDetails ->
-                            processInstanceRecordDetails.getProcessDefinitionKey() == key,
+                            processInstanceRecordDetails.processDefinitionKey() == key,
                         (key1, valueJson) -> printer.accept(valueJson)));
 
     return 0;

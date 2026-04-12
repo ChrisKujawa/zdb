@@ -16,7 +16,6 @@
 package io.zell.zdb.log.records;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -26,176 +25,67 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
 import java.io.StringWriter;
 
-public class Record {
+public record Record(
+    long position,
+    long sourceRecordPosition,
+    long timestamp,
+    long key,
+    RecordType recordType,
+    ValueType valueType,
+    @JsonSerialize(using = IntentSerializer.class) Intent intent,
+    RejectionType rejectionType,
+    String rejectionReason,
+    Long requestId,
+    int requestStreamId,
+    int protocolVersion,
+    String brokerVersion,
+    Integer recordVersion,
+    String authData,
+    JsonNode recordValue,
+    @JsonIgnore ProcessInstanceRelatedValue piRelatedValue) {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final long position;
-    private final long sourceRecordPosition;
-    private final long timestamp;
-    private final long key;
-    private final RecordType recordType;
-    private final ValueType valueType;
-    private final Intent intent;
-    private final RejectionType rejectionType;
-    private final String rejectionReason;
-    private final Long requestId;
-    private final int requestStreamId;
-    private final int protocolVersion;
-    private final String brokerVersion;
-    private final Integer recordVersion;
-    private final String authData;
-    private final JsonNode recordValue;
-    private final ProcessInstanceRelatedValue piRelatedValue;
-
-    public Record(
-            long position,
-            long sourceRecordPosition,
-            long timestamp,
-            long key,
-            RecordType recordType,
-            ValueType valueType,
-            Intent intent,
-            RejectionType rejectionType,
-            String rejectionReason,
-            Long requestId,
-            int requestStreamId,
-            int protocolVersion,
-            String brokerVersion,
-            Integer recordVersion,
-            String authData,
-            JsonNode recordValue,
-            ProcessInstanceRelatedValue piRelatedValue) {
-        this.position = position;
-        this.sourceRecordPosition = sourceRecordPosition;
-        this.timestamp = timestamp;
-        this.key = key;
-        this.recordType = recordType;
-        this.valueType = valueType;
-        this.intent = intent;
-        this.rejectionType = rejectionType;
-        this.rejectionReason = rejectionReason;
-        this.requestId = requestId;
-        this.requestStreamId = requestStreamId;
-        this.protocolVersion = protocolVersion;
-        this.brokerVersion = brokerVersion;
-        this.recordVersion = recordVersion;
-        this.authData = authData;
-        this.recordValue = recordValue;
-        this.piRelatedValue = piRelatedValue;
+  @Override
+  public String toString() {
+    try {
+      var sw = new StringWriter();
+      var gen = OBJECT_MAPPER.getFactory().createGenerator(sw);
+      gen.writeStartObject();
+      gen.writeNumberField("position", position);
+      gen.writeNumberField("sourceRecordPosition", sourceRecordPosition);
+      gen.writeNumberField("timestamp", timestamp);
+      gen.writeNumberField("key", key);
+      gen.writeStringField("recordType", recordType.name());
+      gen.writeStringField("valueType", valueType.name());
+      gen.writeStringField("intent", intent.name());
+      if (rejectionType != null && rejectionType != RejectionType.NULL_VAL) {
+        gen.writeStringField("rejectionType", rejectionType.name());
+      }
+      if (rejectionReason != null && !rejectionReason.isEmpty()) {
+        gen.writeStringField("rejectionReason", rejectionReason);
+      }
+      if (requestId != null && requestId != 0L) {
+        gen.writeNumberField("requestId", requestId);
+      }
+      if (requestStreamId != 0) {
+        gen.writeNumberField("requestStreamId", requestStreamId);
+      }
+      gen.writeNumberField("protocolVersion", protocolVersion);
+      gen.writeStringField("brokerVersion", brokerVersion);
+      if (recordVersion != null && recordVersion != 0) {
+        gen.writeNumberField("recordVersion", recordVersion);
+      }
+      if (authData != null && !authData.isEmpty()) {
+        gen.writeStringField("authData", authData);
+      }
+      gen.writeFieldName("recordValue");
+      gen.writeTree(recordValue);
+      gen.writeEndObject();
+      gen.close();
+      return sw.toString();
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to serialize Record to JSON", e);
     }
-
-    public long getPosition() {
-        return position;
-    }
-
-    public long getSourceRecordPosition() {
-        return sourceRecordPosition;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public long getKey() {
-        return key;
-    }
-
-    public RecordType getRecordType() {
-        return recordType;
-    }
-
-    public ValueType getValueType() {
-        return valueType;
-    }
-
-    @JsonSerialize(using = IntentSerializer.class)
-    public Intent getIntent() {
-        return intent;
-    }
-
-    public RejectionType getRejectionType() {
-        return rejectionType;
-    }
-
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Long getRequestId() {
-        return requestId;
-    }
-
-    public int getRequestStreamId() {
-        return requestStreamId;
-    }
-
-    public int getProtocolVersion() {
-        return protocolVersion;
-    }
-
-    public String getBrokerVersion() {
-        return brokerVersion;
-    }
-
-    public Integer getRecordVersion() {
-        return recordVersion;
-    }
-
-    public String getAuthData() {
-        return authData;
-    }
-
-    public JsonNode getRecordValue() {
-        return recordValue;
-    }
-
-    @JsonIgnore
-    public ProcessInstanceRelatedValue getPiRelatedValue() {
-        return piRelatedValue;
-    }
-
-    @Override
-    public String toString() {
-        try {
-            var sw = new StringWriter();
-            var gen = OBJECT_MAPPER.getFactory().createGenerator(sw);
-            gen.writeStartObject();
-            gen.writeNumberField("position", position);
-            gen.writeNumberField("sourceRecordPosition", sourceRecordPosition);
-            gen.writeNumberField("timestamp", timestamp);
-            gen.writeNumberField("key", key);
-            gen.writeStringField("recordType", recordType.name());
-            gen.writeStringField("valueType", valueType.name());
-            gen.writeStringField("intent", intent.name());
-            // Match kotlinx-serialization: skip fields that equal their default values
-            if (rejectionType != null && rejectionType != RejectionType.NULL_VAL) {
-                gen.writeStringField("rejectionType", rejectionType.name());
-            }
-            if (rejectionReason != null && !rejectionReason.isEmpty()) {
-                gen.writeStringField("rejectionReason", rejectionReason);
-            }
-            if (requestId != null && requestId != 0L) {
-                gen.writeNumberField("requestId", requestId);
-            }
-            if (requestStreamId != 0) {
-                gen.writeNumberField("requestStreamId", requestStreamId);
-            }
-            gen.writeNumberField("protocolVersion", protocolVersion);
-            gen.writeStringField("brokerVersion", brokerVersion);
-            if (recordVersion != null && recordVersion != 0) {
-                gen.writeNumberField("recordVersion", recordVersion);
-            }
-            if (authData != null && !authData.isEmpty()) {
-                gen.writeStringField("authData", authData);
-            }
-            gen.writeFieldName("recordValue");
-            gen.writeTree(recordValue);
-            gen.writeEndObject();
-            gen.close();
-            return sw.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize Record to JSON", e);
-        }
-    }
+  }
 }

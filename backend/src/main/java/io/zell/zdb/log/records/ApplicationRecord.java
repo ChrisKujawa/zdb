@@ -81,21 +81,21 @@ public class ApplicationRecord implements PersistedRecord {
     public String entryAsColumn(Record record) {
         var sb = new StringBuilder();
         var separator = " ";
-        sb.append(record.getPosition())
+        sb.append(record.position())
                 .append(separator)
-                .append(record.getSourceRecordPosition())
+                .append(record.sourceRecordPosition())
                 .append(separator)
-                .append(record.getTimestamp())
+                .append(record.timestamp())
                 .append(separator)
-                .append(record.getKey())
+                .append(record.key())
                 .append(separator)
-                .append(record.getRecordType())
+                .append(record.recordType())
                 .append(separator)
-                .append(record.getValueType())
+                .append(record.valueType())
                 .append(separator)
-                .append(record.getIntent());
+                .append(record.intent());
 
-        var piRelatedValue = record.getPiRelatedValue();
+        var piRelatedValue = record.piRelatedValue();
         if (piRelatedValue != null) {
             if (piRelatedValue.processInstanceKey() != null) {
                 sb.append(separator)

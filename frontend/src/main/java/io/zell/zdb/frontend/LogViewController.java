@@ -139,22 +139,22 @@ public class LogViewController implements Initializable {
         for (final var r : applicationRecord.getEntries()) {
           final var zeebeRecord =
               new ZeebeRecord(
-                  r.getPosition(),
-                  r.getSourceRecordPosition(),
-                  r.getTimestamp(),
-                  r.getKey(),
-                  r.getRecordType().name(),
-                  r.getValueType().name(),
-                  r.getIntent().name(),
-                  r.getRejectionType().name(),
-                  r.getRejectionReason(),
-                  r.getRequestId(),
-                  r.getRequestStreamId(),
-                  r.getProtocolVersion(),
-                  r.getBrokerVersion(),
-                  r.getRecordVersion(),
-                  r.getAuthData(),
-                  r.getRecordValue().toString());
+                  r.position(),
+                  r.sourceRecordPosition(),
+                  r.timestamp(),
+                  r.key(),
+                  r.recordType().name(),
+                  r.valueType().name(),
+                  r.intent().name(),
+                  r.rejectionType().name(),
+                  r.rejectionReason(),
+                  r.requestId(),
+                  r.requestStreamId(),
+                  r.protocolVersion(),
+                  r.brokerVersion(),
+                  r.recordVersion(),
+                  r.authData(),
+                  r.recordValue().toString());
           this.dataObservableList.add(zeebeRecord);
         }
       }

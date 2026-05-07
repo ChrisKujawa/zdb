@@ -158,6 +158,7 @@
         <module>backend</module>
         <module>cli</module>
         <module>frontend</module>
+        <module>mcp-server</module>
     </modules>
 
     <build>

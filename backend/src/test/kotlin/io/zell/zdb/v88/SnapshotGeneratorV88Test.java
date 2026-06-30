@@ -27,11 +27,14 @@ import io.zell.zdb.ZeebeContentCreator;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.state.incident.IncidentState;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,6 +53,8 @@ class SnapshotGeneratorV88Test {
 
   // Relative to backend/ module root — Maven sets CWD to the module during tests
   private static final Path SNAPSHOT_TARGET = Path.of("src/test/resources/zeebe-states/v8.8");
+  private static final Path SNAPSHOT_ZIP =
+      Path.of("src/test/resources/zeebe-states/v8.8.zip");
 
   private static final BpmnModelInstance PROCESS =
       Bpmn.createExecutableProcess("process")
@@ -119,6 +124,10 @@ class SnapshotGeneratorV88Test {
     OBJECT_MAPPER
         .writerWithDefaultPrettyPrinter()
         .writeValue(SNAPSHOT_TARGET.resolve("metadata.json").toFile(), metadata);
+
+    // Zip the snapshot directory and remove the unzipped tree so only the zip is committed
+    zipDirectory(SNAPSHOT_TARGET, SNAPSHOT_ZIP);
+    deleteRecursively(SNAPSHOT_TARGET);
   }
 
   private static void deleteRecursively(Path dir) throws Exception {
@@ -129,6 +138,25 @@ class SnapshotGeneratorV88Test {
         .sorted(Comparator.reverseOrder())
         .map(Path::toFile)
         .forEach(File::delete);
+  }
+
+  private static void zipDirectory(Path source, Path zipTarget) throws Exception {
+    Files.deleteIfExists(zipTarget);
+    try (var fos = new FileOutputStream(zipTarget.toFile());
+        var zos = new ZipOutputStream(fos)) {
+      Files.walk(source)
+          .filter(p -> !Files.isDirectory(p))
+          .forEach(
+              p -> {
+                try {
+                  zos.putNextEntry(new ZipEntry(source.relativize(p).toString()));
+                  Files.copy(p, zos);
+                  zos.closeEntry();
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
+                }
+              });
+    }
   }
 
   private static void copyDirectory(Path source, Path target) throws Exception {

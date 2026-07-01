@@ -1,0 +1,359 @@
+{
+  "position" : 1,
+  "sourceRecordPosition" : -1,
+  "timestamp" : 1782831982926,
+  "key" : -1,
+  "recordType" : "COMMAND",
+  "valueType" : "IDENTITY_SETUP",
+  "intent" : "INITIALIZE",
+  "requestId" : -1,
+  "requestStreamId" : -2147483648,
+  "protocolVersion" : 6,
+  "brokerVersion" : "8.8.0",
+  "recordVersion" : 1,
+  "recordValue" : {
+    "roles" : [ {
+      "roleKey" : -1,
+      "roleId" : "readonly-admin",
+      "name" : "Readonly Admin",
+      "description" : "",
+      "entityId" : "",
+      "entityType" : "UNSPECIFIED"
+    }, {
+      "roleKey" : -1,
+      "roleId" : "admin",
+      "name" : "Admin",
+      "description" : "",
+      "entityId" : "",
+      "entityType" : "UNSPECIFIED"
+    }, {
+      "roleKey" : -1,
+      "roleId" : "rpa",
+      "name" : "RPA",
+      "description" : "",
+      "entityId" : "",
+      "entityType" : "UNSPECIFIED"
+    }, {
+      "roleKey" : -1,
+      "roleId" : "connectors",
+      "name" : "Connectors",
+      "description" : "",
+      "entityId" : "",
+      "entityType" : "UNSPECIFIED"
+    } ],
+    "roleMembers" : [ ],
+    "users" : [ ],
+    "defaultTenant" : {
+      "tenantKey" : -1,
+      "tenantId" : "<default>",
+      "name" : "Default",
+      "description" : "",
+      "entityId" : "",
+      "entityType" : "UNSPECIFIED"
+    },
+    "tenantMembers" : [ {
+      "tenantKey" : -1,
+      "tenantId" : "<default>",
+      "name" : "",
+      "description" : "",
+      "entityId" : "admin",
+      "entityType" : "ROLE"
+    }, {
+      "tenantKey" : -1,
+      "tenantId" : "<default>",
+      "name" : "",
+      "description" : "",
+      "entityId" : "rpa",
+      "entityType" : "ROLE"
+    }, {
+      "tenantKey" : -1,
+      "tenantId" : "<default>",
+      "name" : "",
+      "description" : "",
+      "entityId" : "connectors",
+      "entityType" : "ROLE"
+    } ],
+    "mappingRules" : [ ],
+    "authorizations" : [ {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "AUTHORIZATION",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "BATCH",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "COMPONENT",
+      "permissionTypes" : [ "ACCESS" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DECISION_DEFINITION",
+      "permissionTypes" : [ "READ_DECISION_DEFINITION", "READ_DECISION_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DECISION_REQUIREMENTS_DEFINITION",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DOCUMENT",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "GROUP",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "MAPPING_RULE",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "MESSAGE",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "PROCESS_DEFINITION",
+      "permissionTypes" : [ "READ_PROCESS_DEFINITION", "READ_USER_TASK", "READ_PROCESS_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "RESOURCE",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "ROLE",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "SYSTEM",
+      "permissionTypes" : [ "READ", "READ_USAGE_METRIC" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "TENANT",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "readonly-admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "USER",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "AUTHORIZATION",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "BATCH",
+      "permissionTypes" : [ "CREATE_BATCH_OPERATION_CANCEL_PROCESS_INSTANCE", "CREATE", "CREATE_BATCH_OPERATION_RESOLVE_INCIDENT", "READ", "CREATE_BATCH_OPERATION_MIGRATE_PROCESS_INSTANCE", "CREATE_BATCH_OPERATION_DELETE_PROCESS_DEFINITION", "CREATE_BATCH_OPERATION_DELETE_DECISION_DEFINITION", "CREATE_BATCH_OPERATION_MODIFY_PROCESS_INSTANCE", "CREATE_BATCH_OPERATION_DELETE_PROCESS_INSTANCE", "UPDATE", "CREATE_BATCH_OPERATION_DELETE_DECISION_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "COMPONENT",
+      "permissionTypes" : [ "ACCESS" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DECISION_DEFINITION",
+      "permissionTypes" : [ "READ_DECISION_DEFINITION", "DELETE_DECISION_INSTANCE", "READ_DECISION_INSTANCE", "CREATE_DECISION_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DECISION_REQUIREMENTS_DEFINITION",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DOCUMENT",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "GROUP",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "MAPPING_RULE",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "MESSAGE",
+      "permissionTypes" : [ "CREATE", "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "PROCESS_DEFINITION",
+      "permissionTypes" : [ "CREATE_PROCESS_INSTANCE", "READ_PROCESS_DEFINITION", "UPDATE_PROCESS_INSTANCE", "READ_USER_TASK", "UPDATE_USER_TASK", "MODIFY_PROCESS_INSTANCE", "DELETE_PROCESS_INSTANCE", "READ_PROCESS_INSTANCE", "CANCEL_PROCESS_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "RESOURCE",
+      "permissionTypes" : [ "DELETE_FORM", "CREATE", "READ", "DELETE_RESOURCE", "DELETE_DRD", "DELETE_PROCESS" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "ROLE",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "SYSTEM",
+      "permissionTypes" : [ "READ", "READ_USAGE_METRIC", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "TENANT",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "admin",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "USER",
+      "permissionTypes" : [ "CREATE", "READ", "DELETE", "UPDATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "rpa",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "RESOURCE",
+      "permissionTypes" : [ "READ" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "rpa",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "PROCESS_DEFINITION",
+      "permissionTypes" : [ "UPDATE_PROCESS_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "connectors",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "PROCESS_DEFINITION",
+      "permissionTypes" : [ "UPDATE_PROCESS_INSTANCE", "READ_PROCESS_DEFINITION", "CREATE_PROCESS_INSTANCE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "connectors",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "MESSAGE",
+      "permissionTypes" : [ "CREATE" ]
+    }, {
+      "authorizationKey" : -1,
+      "ownerId" : "connectors",
+      "ownerType" : "ROLE",
+      "resourceMatcher" : "ANY",
+      "resourceId" : "*",
+      "resourceType" : "DOCUMENT",
+      "permissionTypes" : [ "READ", "CREATE", "DELETE" ]
+    } ]
+  }
+}

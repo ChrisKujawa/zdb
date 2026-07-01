@@ -24,6 +24,7 @@ import io.camunda.zeebe.protocol.ZbColumnFamilies;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.log.LogContentReader;
+import io.zell.zdb.log.LogSearch;
 import io.zell.zdb.log.LogStatus;
 import io.zell.zdb.log.LogWriter;
 import io.zell.zdb.raft.RaftStatus;
@@ -166,6 +167,24 @@ class Version88GoldenTest {
   }
 
   @Test
+  void shouldMatchProcessInstances() throws IOException {
+    // given
+    final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
+    final var processKey = metadata.firstProcessKey();
+    final var items = new ArrayList<JsonNode>();
+
+    // when
+    new InstanceState(runtimePath)
+        .listProcessInstances(
+            r -> r.getProcessDefinitionKey() == processKey,
+            (key, valueJson) -> parseAndAdd(items, valueJson));
+    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+
+    // then
+    assertOrUpdate("process-instances.json", output);
+  }
+
+  @Test
   void shouldMatchInstanceDetails() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
@@ -286,6 +305,34 @@ class Version88GoldenTest {
 
     // then
     assertOrUpdate("log-print.dot", output);
+  }
+
+  @Test
+  void shouldMatchLogSearchByPosition() throws IOException {
+    // given
+    final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
+
+    // when — position 1 is the lowest record position; always present in the snapshot
+    final var record = new LogSearch(logPath).searchPosition(1);
+    assertThat(record).isNotNull();
+    final var output = prettyPrint(record.toString());
+
+    // then
+    assertOrUpdate("log-search-position.json", output);
+  }
+
+  @Test
+  void shouldMatchLogSearchByIndex() throws IOException {
+    // given
+    final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
+
+    // when — index 1 is the lowest Raft index; always present in the snapshot
+    final var record = new LogSearch(logPath).searchIndex(1);
+    assertThat(record).isNotNull();
+    final var output = prettyPrint(record.toString());
+
+    // then
+    assertOrUpdate("log-search-index.json", output);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────────

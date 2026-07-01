@@ -29,7 +29,6 @@ import io.camunda.zeebe.util.FileUtil;
 import io.zeebe.containers.ZeebeContainer;
 import io.zell.zdb.state.ZeebeDbReader;
 import io.zell.zdb.state.process.ProcessState;
-import io.zell.zdb.v88.Version88Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -49,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 public class ZeebeStateTest {
@@ -79,7 +79,7 @@ public class ZeebeStateTest {
 
   @Container
   public static ZeebeContainer zeebeContainer =
-      createZeebeContainerGreaterOrEquals88(Version88Test.DOCKER_IMAGE, tempDir.getPath(), LOGGER);
+      createZeebeContainerGreaterOrEquals88(DockerImageName.parse("camunda/camunda:8.8.0"), tempDir.getPath(), LOGGER);
 
   private static DeploymentEvent deploymentEvent;
   private static ProcessInstanceEvent returnedProcessInstance;

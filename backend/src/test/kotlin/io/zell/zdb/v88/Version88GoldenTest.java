@@ -151,6 +151,20 @@ class Version88GoldenTest {
   }
 
   @Test
+  void shouldMatchInstanceList() throws IOException {
+    // given
+    final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
+    final var items = new ArrayList<JsonNode>();
+
+    // when
+    new InstanceState(runtimePath).listInstances((key, valueJson) -> parseAndAdd(items, valueJson));
+    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+
+    // then
+    assertOrUpdate("instance-list.json", output);
+  }
+
+  @Test
   void shouldMatchIncidentList() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");

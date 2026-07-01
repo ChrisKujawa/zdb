@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.camunda.zeebe.protocol.ZbColumnFamilies;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.log.LogContentReader;
 import io.zell.zdb.log.LogStatus;
 import io.zell.zdb.log.LogWriter;
 import io.zell.zdb.raft.RaftStatus;
+import io.zell.zdb.state.KeyFormatters;
 import io.zell.zdb.state.ZeebeDbReader;
 import io.zell.zdb.state.incident.IncidentState;
 import io.zell.zdb.state.instance.InstanceState;
@@ -102,6 +104,33 @@ class Version88GoldenTest {
 
     // then
     assertOrUpdate("state-statistics.json", prettyPrint(output));
+  }
+
+  @Test
+  void shouldMatchStateList() throws IOException {
+    // given
+    final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
+    final var keyFormatters = KeyFormatters.ofDefault();
+    final var sb = new StringBuilder();
+    sb.append("{\"data\":[");
+    final boolean[] first = {true};
+
+    // when
+    new ZeebeDbReader(runtimePath)
+        .visitDBWithJsonValues(
+            (cfName, key, valueJson) -> {
+              if (!first[0]) sb.append(",");
+              first[0] = false;
+              final var cf = ZbColumnFamilies.valueOf(cfName);
+              sb.append(
+                  String.format(
+                      "\n{\"cf\":\"%s\",\"key\":\"%s\",\"value\":%s}",
+                      cf, keyFormatters.forColumnFamily(cf).formatKey(key), valueJson));
+            });
+    sb.append("]}");
+
+    // then
+    assertOrUpdate("state-list.json", sb.toString());
   }
 
   @Test

@@ -82,6 +82,8 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <!-- snapshot-generator requires Docker and rewrites committed resources; run manually only -->
+                    <excludedGroups>snapshot-generator</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>

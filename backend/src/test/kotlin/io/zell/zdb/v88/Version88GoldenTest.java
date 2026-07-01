@@ -128,6 +128,7 @@ class Version88GoldenTest {
     // when
     new ProcessState(runtimePath)
         .processDetails(processKey, (key, valueJson) -> parseAndAdd(items, valueJson));
+    assertThat(items).as("processDetails returned no results for key %d", processKey).isNotEmpty();
     final var output =
         OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items.get(0));
 

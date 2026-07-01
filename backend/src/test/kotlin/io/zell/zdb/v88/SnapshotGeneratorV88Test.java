@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -87,6 +89,14 @@ class SnapshotGeneratorV88Test {
     zeebeContentCreator.createContent(zeebeContainer.getExternalGatewayAddress());
   }
 
+  @AfterAll
+  static void stopContainerAndCleanup() throws Exception {
+    if (zeebeContainer != null && zeebeContainer.isRunning()) {
+      zeebeContainer.stop();
+    }
+    deleteRecursively(TEMP_DIR.toPath());
+  }
+
   @Test
   void generateSnapshot() throws Exception {
     // given: content created in @BeforeAll, stop container to flush all data to disk
@@ -110,6 +120,9 @@ class SnapshotGeneratorV88Test {
                 throw new RuntimeException(e);
               }
             });
+    Assertions.assertThat(incidentKeys)
+        .as("expected exactly one incident in the snapshot")
+        .hasSize(1);
 
     // then: write metadata.json with all keys needed by Version88GoldenTest
     final var metadata =
@@ -125,8 +138,9 @@ class SnapshotGeneratorV88Test {
         .writerWithDefaultPrettyPrinter()
         .writeValue(SNAPSHOT_TARGET.resolve("metadata.json").toFile(), metadata);
 
-    // Zip the snapshot directory and remove the unzipped tree so only the zip is committed
-    zipDirectory(SNAPSHOT_TARGET, SNAPSHOT_ZIP);
+    // Zip relative to src/test/resources so entries carry the zeebe-states/v8.8/ prefix,
+    // matching the path the golden test resolves after unzipping (snapshotDir = tempRoot.resolve("zeebe-states/v8.8"))
+    zipDirectory(SNAPSHOT_TARGET.getParent().getParent(), SNAPSHOT_TARGET, SNAPSHOT_ZIP);
     deleteRecursively(SNAPSHOT_TARGET);
   }
 
@@ -140,16 +154,16 @@ class SnapshotGeneratorV88Test {
         .forEach(File::delete);
   }
 
-  private static void zipDirectory(Path source, Path zipTarget) throws Exception {
+  private static void zipDirectory(Path baseDir, Path sourceDir, Path zipTarget) throws Exception {
     Files.deleteIfExists(zipTarget);
     try (var fos = new FileOutputStream(zipTarget.toFile());
         var zos = new ZipOutputStream(fos)) {
-      Files.walk(source)
+      Files.walk(sourceDir)
           .filter(p -> !Files.isDirectory(p))
           .forEach(
               p -> {
                 try {
-                  zos.putNextEntry(new ZipEntry(source.relativize(p).toString()));
+                  zos.putNextEntry(new ZipEntry(baseDir.relativize(p).toString()));
                   Files.copy(p, zos);
                   zos.closeEntry();
                 } catch (Exception e) {

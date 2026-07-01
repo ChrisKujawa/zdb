@@ -1,0 +1,70 @@
+name: Regenerate snapshot on Renovate Docker image update
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/src/test/**/SnapshotGenerator*.java'
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    if: github.actor == 'renovate[bot]'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Check out the actual branch so we can push back
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.AUTO_MERGE_GITHUB_TOKEN }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.4.0
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Detect changed generator tests
+        id: detect
+        run: |
+          GENERATORS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            -- 'backend/src/test/**/SnapshotGenerator*.java' \
+            | xargs -r -I{} basename {} .java \
+            | paste -sd ',')
+          GOLDENS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            -- 'backend/src/test/**/SnapshotGenerator*.java' \
+            | xargs -r -I{} basename {} .java \
+            | sed 's/SnapshotGenerator/Version/' \
+            | sed 's/Test$/GoldenTest/' \
+            | paste -sd ',')
+          echo "generators=$GENERATORS" >> "$GITHUB_OUTPUT"
+          echo "goldens=$GOLDENS" >> "$GITHUB_OUTPUT"
+          echo "Detected generators: $GENERATORS"
+          echo "Detected golden tests: $GOLDENS"
+
+      - name: Run snapshot generator
+        run: |
+          mvn -B test -pl backend \
+            -Dgroups=snapshot-generator \
+            -DskipTests=false \
+            -Dtest=${{ steps.detect.outputs.generators }} \
+            -Dquickly
+
+      - name: Regenerate golden files
+        run: |
+          mvn -B test -pl backend \
+            -DskipTests=false \
+            -DupdateGoldens=true \
+            -Dtest=${{ steps.detect.outputs.goldens }} \
+            -Dquickly
+
+      - name: Commit and push updated snapshot and golden files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/src/test/resources/zeebe-states/
+          git add backend/src/test/resources/golden/
+          git diff --cached --quiet \
+            || git commit -m "test: regenerate snapshot and golden files for updated Docker image"
+          git push

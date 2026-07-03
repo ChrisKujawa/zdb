@@ -15,6 +15,49 @@
 * [Licenses](#licenses)
 * [Code of Conduct](#code-of-conduct)
 
+## Golden file tests
+
+ZDB integration tests for each supported Zeebe version use a pre-committed snapshot and golden
+files instead of a live Docker container. This makes the test suite fast (no Docker dependency)
+and deterministic (keys, ordering, and timestamps are frozen in the snapshot).
+
+**Running the tests:**
+
+```bash
+mvn test -pl backend -DskipTests=false
+```
+
+**Updating golden files after a ZDB output change:**
+
+When a ZDB behavior change causes golden tests to fail and the new output is correct:
+
+```bash
+# Regenerate all golden files for v8.8
+mvn test -pl backend -DskipTests=false -DupdateGoldens=true -Dtest=Version88GoldenTest
+
+# Review what changed
+git diff backend/src/test/resources/golden/v8.8/
+
+# Commit if the diff looks right
+git add backend/src/test/resources/golden/v8.8/ && git commit -m "test: update v8.8 golden files"
+```
+
+**Regenerating the snapshot (rare — only needed when Zeebe changes its on-disk format):**
+
+```bash
+mvn test -pl backend -DskipTests=false -Dgroups=snapshot-generator -Dtest=SnapshotGeneratorV88Test
+git add backend/src/test/resources/zeebe-states/v8.8.zip && git commit -m "test: regenerate v8.8 snapshot"
+# Then regenerate golden files as above
+```
+
+**Adding a new Zeebe version:**
+
+1. Copy `SnapshotGeneratorV88Test` to `SnapshotGeneratorV89Test`, update the Docker image tag
+2. Run the generator: `mvn test -pl backend -DskipTests=false -Dgroups=snapshot-generator -Dtest=SnapshotGeneratorV89Test`
+3. Copy `Version88GoldenTest` to `Version89GoldenTest`, update paths to `v8.9`
+4. Seed golden files: `mvn test -pl backend -DskipTests=false -DupdateGoldens=true -Dtest=Version89GoldenTest`
+5. Commit the new snapshot and golden files
+
 ## Build from source
 
 ZDB is a multi-module maven project. Partly written in Kotlin. To build all components,

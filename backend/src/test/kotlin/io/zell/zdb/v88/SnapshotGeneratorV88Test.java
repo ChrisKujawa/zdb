@@ -21,20 +21,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.model.bpmn.Bpmn;
 import io.camunda.zeebe.model.bpmn.BpmnModelInstance;
 import io.zeebe.containers.ZeebeContainer;
+import io.zell.zdb.SnapshotFixture;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.TestUtils;
 import io.zell.zdb.ZeebeContentCreator;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.state.incident.IncidentState;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -94,7 +89,7 @@ class SnapshotGeneratorV88Test {
     if (zeebeContainer != null && zeebeContainer.isRunning()) {
       zeebeContainer.stop();
     }
-    deleteRecursively(TEMP_DIR.toPath());
+    SnapshotFixture.deleteRecursively(TEMP_DIR.toPath());
   }
 
   @Test
@@ -103,8 +98,8 @@ class SnapshotGeneratorV88Test {
     zeebeContainer.stop();
 
     // when: copy Zeebe data directory to committed test resources
-    deleteRecursively(SNAPSHOT_TARGET);
-    copyDirectory(TEMP_DIR.toPath(), SNAPSHOT_TARGET);
+    SnapshotFixture.deleteRecursively(SNAPSHOT_TARGET);
+    SnapshotFixture.copyDirectory(TEMP_DIR.toPath(), SNAPSHOT_TARGET);
 
     // Query the incident key from the committed snapshot (not available directly from
     // ZeebeContentCreator — we derive it by reading ZDB state on the copied snapshot)
@@ -140,53 +135,7 @@ class SnapshotGeneratorV88Test {
 
     // Zip relative to src/test/resources so entries carry the zeebe-states/v8.8/ prefix,
     // matching the path the golden test resolves after unzipping (snapshotDir = tempRoot.resolve("zeebe-states/v8.8"))
-    zipDirectory(SNAPSHOT_TARGET.getParent().getParent(), SNAPSHOT_TARGET, SNAPSHOT_ZIP);
-    deleteRecursively(SNAPSHOT_TARGET);
-  }
-
-  private static void deleteRecursively(Path dir) throws Exception {
-    if (!Files.exists(dir)) {
-      return;
-    }
-    Files.walk(dir)
-        .sorted(Comparator.reverseOrder())
-        .map(Path::toFile)
-        .forEach(File::delete);
-  }
-
-  private static void zipDirectory(Path baseDir, Path sourceDir, Path zipTarget) throws Exception {
-    Files.deleteIfExists(zipTarget);
-    try (var fos = new FileOutputStream(zipTarget.toFile());
-        var zos = new ZipOutputStream(fos)) {
-      Files.walk(sourceDir)
-          .filter(p -> !Files.isDirectory(p))
-          .forEach(
-              p -> {
-                try {
-                  zos.putNextEntry(new ZipEntry(baseDir.relativize(p).toString()));
-                  Files.copy(p, zos);
-                  zos.closeEntry();
-                } catch (Exception e) {
-                  throw new RuntimeException(e);
-                }
-              });
-    }
-  }
-
-  private static void copyDirectory(Path source, Path target) throws Exception {
-    Files.walk(source)
-        .forEach(
-            src -> {
-              try {
-                final Path dest = target.resolve(source.relativize(src));
-                if (Files.isDirectory(src)) {
-                  Files.createDirectories(dest);
-                } else {
-                  Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
-                }
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            });
+    SnapshotFixture.pack(SNAPSHOT_TARGET, SNAPSHOT_ZIP);
+    SnapshotFixture.deleteRecursively(SNAPSHOT_TARGET);
   }
 }

@@ -12,7 +12,12 @@
         "DockerImageName\\.parse\\(\"(?<depName>[^:\"]+):(?<currentValue>[^\"]+)\"\\)"
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "semver",
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["custom.regex"],
       "matchUpdateTypes": ["patch"]
     }
   ]

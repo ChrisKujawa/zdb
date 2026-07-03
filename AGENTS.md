@@ -3,6 +3,11 @@
 This is a personal, single-maintainer project (Christopher Kujawa / `Zelldon`). There
 is no central org-level AGENTS.md to defer to — everything below is local to this repo.
 
+For the human contribution workflow (issue guidelines, PR process, review emoji
+code), see [CONTRIBUTING.md](CONTRIBUTING.md). This file only covers what that one
+doesn't: build automation quirks, testing conventions, and things worth confirming
+before doing.
+
 ## What this is
 
 ZDB (Zeebe Debugger) is a CLI + JavaFX GUI for inspecting a Zeebe partition's on-disk
@@ -79,11 +84,10 @@ Formatting and license headers are applied automatically, not just checked:
 
 ## Commit & PR conventions
 
-Conventional Commits **with an optional scope** (unlike some larger repos, this one
-allows `type(scope): description`, e.g. `fix(cli): ...`) — see `CONTRIBUTING.md` for
-the full type list and the review-emoji conventions. Squash cleanup/fixup commits
-into the commit they belong to before requesting review; keep refactors in their own
-commit, separate from behavioral changes.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) for the full commit/PR workflow. One delta
+worth flagging: this repo's Conventional Commits format **allows an optional scope**
+(`type(scope): description`, e.g. `fix(cli): ...`) — don't assume the no-scope rule
+some other repos enforce.
 
 ## Ask first
 

@@ -27,6 +27,7 @@ import io.camunda.zeebe.protocol.record.RejectionType;
 import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.value.BpmnElementType;
+import io.zell.zdb.SnapshotFixture;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.log.LogContentReader;
@@ -42,17 +43,12 @@ import io.zell.zdb.state.instance.InstanceState;
 import io.zell.zdb.state.process.ProcessState;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,39 +68,21 @@ class Version88Test {
   static final int MAX_POSITION = 153;
   static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  static SnapshotFixture fixture;
   static Path snapshotDir;
   static SnapshotMetadata metadata;
 
   @BeforeAll
   static void setUp() throws Exception {
-    final Path tempRoot = Files.createTempDirectory("zdb-v88-snapshot");
-    try (var zis = new ZipInputStream(Files.newInputStream(SNAPSHOT_ZIP))) {
-      ZipEntry entry;
-      while ((entry = zis.getNextEntry()) != null) {
-        final var dest = tempRoot.resolve(entry.getName());
-        if (entry.isDirectory()) {
-          Files.createDirectories(dest);
-        } else {
-          Files.createDirectories(dest.getParent());
-          Files.copy(zis, dest);
-        }
-        zis.closeEntry();
-      }
-    }
-    snapshotDir = tempRoot.resolve("zeebe-states/v8.8");
-    metadata =
-        OBJECT_MAPPER.readValue(
-            snapshotDir.resolve("metadata.json").toFile(), SnapshotMetadata.class);
+    fixture = SnapshotFixture.unzip(SNAPSHOT_ZIP, "v8.8");
+    snapshotDir = fixture.snapshotDir();
+    metadata = fixture.metadata();
   }
 
   @AfterAll
   static void tearDown() throws Exception {
-    if (snapshotDir != null) {
-      final Path tempRoot = snapshotDir.getParent().getParent();
-      Files.walk(tempRoot)
-          .sorted(Comparator.reverseOrder())
-          .map(Path::toFile)
-          .forEach(File::delete);
+    if (fixture != null) {
+      fixture.cleanup();
     }
   }
 

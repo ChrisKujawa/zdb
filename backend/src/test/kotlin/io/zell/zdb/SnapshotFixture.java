@@ -17,18 +17,23 @@ package io.zell.zdb;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
- * Unzips a pre-committed {@code zeebe-states/<version>.zip} snapshot (as produced by a
- * `SnapshotGenerator*Test`) into a temp directory and exposes its {@link SnapshotMetadata}. Shared
- * across all version-specific test classes so each one only wires up {@code @BeforeAll}/{@code
- * @AfterAll} against this fixture instead of repeating the unzip logic.
+ * Reads and writes the pre-committed {@code zeebe-states/<version>.zip} snapshots used across all
+ * version-specific test classes: {@link #unzip} for golden/behavior tests that consume a
+ * snapshot, {@link #pack}/{@link #copyDirectory}/{@link #deleteRecursively} for
+ * `SnapshotGenerator*Test` classes that produce one. Keeping both directions in one place avoids
+ * every version repeating its own zip/copy/cleanup plumbing.
  */
 public record SnapshotFixture(Path snapshotDir, SnapshotMetadata metadata) {
 
@@ -56,8 +61,60 @@ public record SnapshotFixture(Path snapshotDir, SnapshotMetadata metadata) {
     return new SnapshotFixture(snapshotDir, metadata);
   }
 
+  /**
+   * Zips {@code versionDir} (e.g. {@code .../zeebe-states/v8.8}) into {@code zipTarget}, with
+   * entries relative to its grandparent so they carry the {@code zeebe-states/<version>/} prefix
+   * that {@link #unzip} expects.
+   */
+  public static void pack(final Path versionDir, final Path zipTarget) throws IOException {
+    final Path baseDir = versionDir.getParent().getParent();
+    Files.deleteIfExists(zipTarget);
+    try (var fos = new FileOutputStream(zipTarget.toFile());
+        var zos = new ZipOutputStream(fos);
+        var paths = Files.walk(versionDir)) {
+      paths
+          .filter(p -> !Files.isDirectory(p))
+          .forEach(
+              p -> {
+                try {
+                  zos.putNextEntry(new ZipEntry(baseDir.relativize(p).toString()));
+                  Files.copy(p, zos);
+                  zos.closeEntry();
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+              });
+    }
+  }
+
+  public static void copyDirectory(final Path source, final Path target) throws IOException {
+    try (var paths = Files.walk(source)) {
+      paths.forEach(
+          src -> {
+            try {
+              final Path dest = target.resolve(source.relativize(src));
+              if (Files.isDirectory(src)) {
+                Files.createDirectories(dest);
+              } else {
+                Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+              }
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
+            }
+          });
+    }
+  }
+
+  public static void deleteRecursively(final Path dir) throws IOException {
+    if (!Files.exists(dir)) {
+      return;
+    }
+    try (var paths = Files.walk(dir)) {
+      paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    }
+  }
+
   public void cleanup() throws IOException {
-    final Path tempRoot = snapshotDir.getParent().getParent();
-    Files.walk(tempRoot).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    deleteRecursively(snapshotDir.getParent().getParent());
   }
 }

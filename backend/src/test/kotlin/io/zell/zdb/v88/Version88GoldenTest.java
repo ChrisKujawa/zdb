@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.protocol.ZbColumnFamilies;
+import io.zell.zdb.GoldenFileAssert;
 import io.zell.zdb.SnapshotFixture;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
@@ -37,7 +38,6 @@ import io.zell.zdb.state.process.ProcessState;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import org.junit.jupiter.api.AfterAll;
@@ -49,7 +49,6 @@ class Version88GoldenTest {
   // Paths relative to backend/ module root (Maven CWD during test execution)
   static final Path SNAPSHOT_ZIP = Path.of("src/test/resources/zeebe-states/v8.8.zip");
   static final Path GOLDEN = Path.of("src/test/resources/golden/v8.8");
-  static final boolean UPDATE = Boolean.getBoolean("updateGoldens");
   static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   // Set in @BeforeAll after unzipping; points to the zeebe-states/v8.8 dir inside temp
@@ -316,14 +315,7 @@ class Version88GoldenTest {
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
   private void assertOrUpdate(final String filename, final String actual) throws IOException {
-    final var goldenFile = GOLDEN.resolve(filename);
-    if (UPDATE) {
-      Files.createDirectories(goldenFile.getParent());
-      Files.writeString(goldenFile, actual);
-    } else {
-      final var expected = Files.readString(goldenFile);
-      assertThat(actual).isEqualTo(expected);
-    }
+    GoldenFileAssert.assertOrUpdate(GOLDEN.resolve(filename), actual);
   }
 
   private String prettyPrint(final String json) throws JsonProcessingException {

@@ -23,11 +23,11 @@
 hs_err_pid*
 
 .idea/
-<<<<<<< HEAD
 # ignore the data folder
 data/
 .DS_Store
-=======
 target/
->>>>>>> 1478331 (adjust gitignore)
 *.iml
+
+# Allow committed test resource zips (zeebe state snapshots)
+!backend/src/test/resources/zeebe-states/*.zip

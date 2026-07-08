@@ -1,0 +1,22 @@
+{
+  "meta" : {
+    "term" : 1,
+    "lastFlushedIndex" : 15,
+    "commitIndex" : 0,
+    "votedFor" : "0"
+  },
+  "config" : {
+    "index" : 0,
+    "term" : 0,
+    "time" : 1783494540110,
+    "force" : false,
+    "requiresJointConsensus" : false,
+    "newMembers" : [ {
+      "id" : "0",
+      "hash" : 384918240,
+      "type" : "ACTIVE",
+      "lastUpdated" : "2026-07-08T07:09:00.110Z"
+    } ],
+    "oldMembers" : [ ]
+  }
+}

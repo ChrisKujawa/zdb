@@ -1,0 +1,85 @@
+[ {
+  "parentKey" : -1,
+  "childCount" : 2,
+  "childActivatedCount" : 0,
+  "childCompletedCount" : 0,
+  "childTerminatedCount" : 0,
+  "jobKey" : 0,
+  "multiInstanceLoopCounter" : 0,
+  "interruptingElementId" : "",
+  "calledChildInstanceKey" : -1,
+  "elementRecord" : {
+    "key" : 2251799813685252,
+    "state" : "ELEMENT_ACTIVATED",
+    "processInstanceRecord" : {
+      "bpmnElementType" : "PROCESS",
+      "elementId" : "process",
+      "bpmnProcessId" : "process",
+      "version" : 1,
+      "processDefinitionKey" : 2251799813685249,
+      "processInstanceKey" : 2251799813685252,
+      "flowScopeKey" : -1,
+      "bpmnEventType" : "UNSPECIFIED",
+      "parentProcessInstanceKey" : -1,
+      "parentElementInstanceKey" : -1,
+      "tenantId" : "<default>"
+    }
+  },
+  "activeSequenceFlows" : 0
+}, {
+  "parentKey" : 2251799813685252,
+  "childCount" : 0,
+  "childActivatedCount" : 0,
+  "childCompletedCount" : 0,
+  "childTerminatedCount" : 0,
+  "jobKey" : 0,
+  "multiInstanceLoopCounter" : 0,
+  "interruptingElementId" : "",
+  "calledChildInstanceKey" : -1,
+  "elementRecord" : {
+    "key" : 2251799813685261,
+    "state" : "ELEMENT_ACTIVATING",
+    "processInstanceRecord" : {
+      "bpmnElementType" : "SERVICE_TASK",
+      "elementId" : "incidentTask",
+      "bpmnProcessId" : "process",
+      "version" : 1,
+      "processDefinitionKey" : 2251799813685249,
+      "processInstanceKey" : 2251799813685252,
+      "flowScopeKey" : 2251799813685252,
+      "bpmnEventType" : "UNSPECIFIED",
+      "parentProcessInstanceKey" : -1,
+      "parentElementInstanceKey" : -1,
+      "tenantId" : "<default>"
+    }
+  },
+  "activeSequenceFlows" : 0
+}, {
+  "parentKey" : 2251799813685252,
+  "childCount" : 0,
+  "childActivatedCount" : 0,
+  "childCompletedCount" : 0,
+  "childTerminatedCount" : 0,
+  "jobKey" : 2251799813685266,
+  "multiInstanceLoopCounter" : 0,
+  "interruptingElementId" : "",
+  "calledChildInstanceKey" : -1,
+  "elementRecord" : {
+    "key" : 2251799813685263,
+    "state" : "ELEMENT_ACTIVATED",
+    "processInstanceRecord" : {
+      "bpmnElementType" : "SERVICE_TASK",
+      "elementId" : "task",
+      "bpmnProcessId" : "process",
+      "version" : 1,
+      "processDefinitionKey" : 2251799813685249,
+      "processInstanceKey" : 2251799813685252,
+      "flowScopeKey" : 2251799813685252,
+      "bpmnEventType" : "UNSPECIFIED",
+      "parentProcessInstanceKey" : -1,
+      "parentElementInstanceKey" : -1,
+      "tenantId" : "<default>"
+    }
+  },
+  "activeSequenceFlows" : 0
+} ]

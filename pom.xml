@@ -61,6 +61,9 @@
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
         <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
         <maven.compiler.release>21</maven.compiler.release>
+        <!-- Default: exclude snapshot-generator tests (need Docker + overwrite committed fixtures).
+             Override with -Dsurefire.excludedGroups= to run generators intentionally. -->
+        <surefire.excludedGroups>snapshot-generator</surefire.excludedGroups>
         <plugin.version.checkstyle>3.6.0</plugin.version.checkstyle>
         <plugin.version.fmt>2.29</plugin.version.fmt>
         <plugin.version.license>5.0.0</plugin.version.license>

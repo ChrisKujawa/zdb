@@ -69,6 +69,19 @@ The resulting ZDB cli can be found in the folder `cli/target`, i.e.
 cli/target/cli-X.Y.Z-SNAPSHOT-jar-with-dependencies.jar
 ```
 
+## Releasing from GitHub
+
+Use the **Release** workflow in the GitHub Actions UI to publish a new version.
+Enter the release version without `-SNAPSHOT`, for example `2.7.0`. The workflow
+expects `main` to currently be on that matching snapshot version, for example
+`2.7.0-SNAPSHOT`.
+
+The workflow builds the release artifacts, publishes the Docker image, commits the
+release version, tags it, commits the next `-SNAPSHOT` version, pushes both commits
+and the tag, and creates the GitHub release with the CLI and frontend jars attached.
+If the next development version is left empty, the workflow increments the patch
+version automatically.
+
 This is a small overview of the contents of the different modules:
 - `cli` contains the cli facade
 - `backend` contains the backend and the general logic of zdb

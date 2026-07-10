@@ -1,0 +1,168 @@
+name: Release
+
+run-name: Release ${{ inputs.release_version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Release version without -SNAPSHOT, for example 2.7.0
+        required: true
+        type: string
+      next_development_version:
+        description: Next development version without -SNAPSHOT. Leave empty to increment the patch version.
+        required: false
+        type: string
+      draft:
+        description: Create the GitHub release as a draft
+        required: false
+        default: false
+        type: boolean
+      prerelease:
+        description: Mark the GitHub release as a prerelease
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.5.0
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Resolve release versions
+        id: versions
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          NEXT_DEVELOPMENT_VERSION: ${{ inputs.next_development_version }}
+        run: |
+          set -euo pipefail
+
+          release_version="${RELEASE_VERSION}"
+          next_development_version="${NEXT_DEVELOPMENT_VERSION}"
+
+          if [[ "$release_version" == *-SNAPSHOT ]]; then
+            echo "release_version must not end with -SNAPSHOT"
+            exit 1
+          fi
+
+          if [[ ! "$release_version" =~ ^[0-9]+[.][0-9]+[.][0-9]+([-.][0-9A-Za-z]+)*$ ]]; then
+            echo "release_version must look like 2.7.0"
+            exit 1
+          fi
+
+          if git rev-parse --verify --quiet "refs/tags/$release_version"; then
+            echo "Tag $release_version already exists"
+            exit 1
+          fi
+
+          current_version="$(mvn -q -N help:evaluate -Dexpression=project.version -DforceStdout)"
+          expected_snapshot_version="$release_version-SNAPSHOT"
+          if [[ "$current_version" != "$expected_snapshot_version" ]]; then
+            echo "Current project version is $current_version, expected $expected_snapshot_version"
+            exit 1
+          fi
+
+          if [[ -z "$next_development_version" ]]; then
+            if [[ ! "$release_version" =~ ^([0-9]+)[.]([0-9]+)[.]([0-9]+)$ ]]; then
+              echo "next_development_version is required for non-standard release versions"
+              exit 1
+            fi
+
+            next_development_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+          fi
+
+          next_development_version="${next_development_version%-SNAPSHOT}"
+          if [[ ! "$next_development_version" =~ ^[0-9]+[.][0-9]+[.][0-9]+([-.][0-9A-Za-z]+)*$ ]]; then
+            echo "next_development_version must look like 2.7.1"
+            exit 1
+          fi
+
+          echo "release_version=$release_version" >> "$GITHUB_OUTPUT"
+          echo "next_development_version=$next_development_version" >> "$GITHUB_OUTPUT"
+
+      - name: Set release version
+        run: mvn -B versions:set "-DnewVersion=${{ steps.versions.outputs.release_version }}" -DgenerateBackupPoms=false
+
+      - name: Build release artifacts
+        run: mvn -B clean install -DskipTests
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Publish release Docker image
+        run: mvn -B package jib:build -DskipTests
+
+      - name: Prepare release assets
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          cp "cli/target/cli-${{ steps.versions.outputs.release_version }}-jar-with-dependencies.jar" dist/zdb.jar
+          cp "frontend/target/frontend-${{ steps.versions.outputs.release_version }}-jar-with-dependencies.jar" dist/zdb-frontend.jar
+
+      - name: Commit release version
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pom.xml backend/pom.xml cli/pom.xml frontend/pom.xml
+          git commit -m "build: release version ${{ steps.versions.outputs.release_version }}"
+          git tag "${{ steps.versions.outputs.release_version }}"
+
+      - name: Commit next development version
+        run: |
+          set -euo pipefail
+
+          mvn -B versions:set "-DnewVersion=${{ steps.versions.outputs.next_development_version }}-SNAPSHOT" -DgenerateBackupPoms=false
+          git add pom.xml backend/pom.xml cli/pom.xml frontend/pom.xml
+          git commit -m "build: prepare for next version"
+
+      - name: Push release commits and tag
+        run: |
+          set -euo pipefail
+
+          git push origin main
+          git push origin "${{ steps.versions.outputs.release_version }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAFT: ${{ inputs.draft }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          release_flags=(--generate-notes --title "${{ steps.versions.outputs.release_version }}")
+
+          if [[ "$DRAFT" == "true" ]]; then
+            release_flags+=(--draft)
+          fi
+
+          if [[ "$PRERELEASE" == "true" ]]; then
+            release_flags+=(--prerelease)
+          fi
+
+          gh release create "${{ steps.versions.outputs.release_version }}" "${release_flags[@]}" dist/zdb.jar dist/zdb-frontend.jar

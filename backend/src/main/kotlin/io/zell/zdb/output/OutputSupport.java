@@ -29,4 +29,21 @@ final class OutputSupport {
     writer.accept(new PrintStream(out, true, StandardCharsets.UTF_8));
     return out.toString(StandardCharsets.UTF_8);
   }
+
+  static String jsonArray(final Consumer<Consumer<String>> items) {
+    final var output = new StringBuilder();
+    output.append("[");
+    final var first = new boolean[] {true};
+
+    items.accept(
+        item -> {
+          if (!first[0]) {
+            output.append(",");
+          }
+          first[0] = false;
+          output.append(item);
+        });
+    output.append("]");
+    return output.toString();
+  }
 }

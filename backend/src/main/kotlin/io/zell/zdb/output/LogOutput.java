@@ -41,6 +41,10 @@ public final class LogOutput {
         out -> writeJson(out, logPath, fromPosition, toPosition, instanceKey));
   }
 
+  public static String contentJson(final Path logPath) {
+    return new LogContentReader(logPath).readAll().toString();
+  }
+
   public static void writeJson(
       final PrintStream out,
       final Path logPath,

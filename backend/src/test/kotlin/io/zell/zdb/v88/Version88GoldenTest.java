@@ -205,7 +205,7 @@ class Version88GoldenTest {
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when
-    final var output = prettyPrint(LogOutput.printJson(logPath, 0, Long.MAX_VALUE, 0));
+    final var output = prettyPrint(LogOutput.contentJson(logPath));
 
     // then
     assertOrUpdate("log-print.json", output);

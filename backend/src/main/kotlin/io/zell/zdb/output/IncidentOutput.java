@@ -25,7 +25,8 @@ public final class IncidentOutput {
   private IncidentOutput() {}
 
   public static String list(final Path partitionPath) {
-    return OutputSupport.capture(out -> writeList(out, partitionPath));
+    return OutputSupport.jsonArray(
+        item -> new IncidentState(partitionPath).listIncidents(item::accept));
   }
 
   public static void writeList(final PrintStream out, final Path partitionPath) {

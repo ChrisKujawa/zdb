@@ -26,7 +26,10 @@ public final class ProcessOutput {
   private ProcessOutput() {}
 
   public static String list(final Path partitionPath) {
-    return OutputSupport.capture(out -> writeList(out, partitionPath));
+    return OutputSupport.jsonArray(
+        item ->
+            new ProcessState(partitionPath)
+                .listProcesses((key, valueJson) -> item.accept(valueJson)));
   }
 
   public static void writeList(final PrintStream out, final Path partitionPath) {
@@ -38,7 +41,9 @@ public final class ProcessOutput {
   }
 
   public static String entity(final Path partitionPath, final long key) {
-    return OutputSupport.capture(out -> writeEntity(out, partitionPath, key));
+    final var output = new String[1];
+    new ProcessState(partitionPath).processDetails(key, (k, valueJson) -> output[0] = valueJson);
+    return output[0];
   }
 
   public static void writeEntity(final PrintStream out, final Path partitionPath, final long key) {
@@ -50,7 +55,13 @@ public final class ProcessOutput {
   }
 
   public static String instances(final Path partitionPath, final long processKey) {
-    return OutputSupport.capture(out -> writeInstances(out, partitionPath, processKey));
+    return OutputSupport.jsonArray(
+        item ->
+            new InstanceState(partitionPath)
+                .listProcessInstances(
+                    processInstanceRecordDetails ->
+                        processInstanceRecordDetails.getProcessDefinitionKey() == processKey,
+                    (key, valueJson) -> item.accept(valueJson)));
   }
 
   public static void writeInstances(

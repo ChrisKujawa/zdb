@@ -1,48 +1,46 @@
-{
-  "data" : [ {
-    "parentKey" : -1,
-    "childCount" : 2,
-    "childActivatedCount" : 0,
-    "childCompletedCount" : 0,
-    "childTerminatedCount" : 0,
-    "jobKey" : 0,
-    "multiInstanceLoopCounter" : 0,
-    "interruptingElementId" : "",
-    "calledChildInstanceKey" : -1,
-    "elementRecord" : {
-      "key" : 2251799813685297,
-      "state" : "ELEMENT_ACTIVATED",
-      "processInstanceRecord" : {
-        "bpmnElementType" : "PROCESS",
-        "elementId" : "process",
-        "bpmnProcessId" : "process",
-        "version" : 1,
-        "processDefinitionKey" : 2251799813685295,
-        "processInstanceKey" : 2251799813685297,
-        "flowScopeKey" : -1,
-        "bpmnEventType" : "UNSPECIFIED",
-        "parentProcessInstanceKey" : -1,
-        "parentElementInstanceKey" : -1,
-        "tenantId" : "<default>",
-        "elementInstancePath" : [ [ 2251799813685297 ] ],
-        "processDefinitionPath" : [ 2251799813685295 ],
-        "callingElementPath" : [ ],
-        "tags" : [ ]
-      }
-    },
-    "activeSequenceFlows" : 0,
-    "activeSequenceFlowIds" : [ ],
-    "userTaskKey" : -1,
-    "executionListenerIndex" : 0,
-    "taskListenerIndicesRecord" : {
-      "creatingTaskListenerIndex" : 0,
-      "assigningTaskListenerIndex" : 0,
-      "updatingTaskListenerIndex" : 0,
-      "completingTaskListenerIndex" : 0,
-      "cancelingTaskListenerIndex" : 0
-    },
-    "processDepth" : 1,
-    "interruptedByRuntimeInstruction" : false,
-    "completionConditionFulfilled" : false
-  } ]
-}
+[ {
+  "parentKey" : -1,
+  "childCount" : 2,
+  "childActivatedCount" : 0,
+  "childCompletedCount" : 0,
+  "childTerminatedCount" : 0,
+  "jobKey" : 0,
+  "multiInstanceLoopCounter" : 0,
+  "interruptingElementId" : "",
+  "calledChildInstanceKey" : -1,
+  "elementRecord" : {
+    "key" : 2251799813685297,
+    "state" : "ELEMENT_ACTIVATED",
+    "processInstanceRecord" : {
+      "bpmnElementType" : "PROCESS",
+      "elementId" : "process",
+      "bpmnProcessId" : "process",
+      "version" : 1,
+      "processDefinitionKey" : 2251799813685295,
+      "processInstanceKey" : 2251799813685297,
+      "flowScopeKey" : -1,
+      "bpmnEventType" : "UNSPECIFIED",
+      "parentProcessInstanceKey" : -1,
+      "parentElementInstanceKey" : -1,
+      "tenantId" : "<default>",
+      "elementInstancePath" : [ [ 2251799813685297 ] ],
+      "processDefinitionPath" : [ 2251799813685295 ],
+      "callingElementPath" : [ ],
+      "tags" : [ ]
+    }
+  },
+  "activeSequenceFlows" : 0,
+  "activeSequenceFlowIds" : [ ],
+  "userTaskKey" : -1,
+  "executionListenerIndex" : 0,
+  "taskListenerIndicesRecord" : {
+    "creatingTaskListenerIndex" : 0,
+    "assigningTaskListenerIndex" : 0,
+    "updatingTaskListenerIndex" : 0,
+    "completingTaskListenerIndex" : 0,
+    "cancelingTaskListenerIndex" : 0
+  },
+  "processDepth" : 1,
+  "interruptedByRuntimeInstruction" : false,
+  "completionConditionFulfilled" : false
+} ]

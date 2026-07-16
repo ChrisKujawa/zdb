@@ -1,22 +1,20 @@
-{
-  "data" : [ {
-    "key" : 2251799813685310,
-    "value" : {
-      "incidentRecord" : {
-        "errorType" : "EXTRACT_VALUE_ERROR",
-        "errorMessage" : "Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:\n[NO_VARIABLE_FOUND] No variable found with name 'foo'",
-        "bpmnProcessId" : "process",
-        "processDefinitionKey" : 2251799813685295,
-        "processInstanceKey" : 2251799813685297,
-        "elementId" : "incidentTask",
-        "elementInstanceKey" : 2251799813685306,
-        "jobKey" : -1,
-        "variableScopeKey" : 2251799813685306,
-        "tenantId" : "<default>",
-        "elementInstancePath" : [ [ 2251799813685297, 2251799813685306 ] ],
-        "processDefinitionPath" : [ 2251799813685295 ],
-        "callingElementPath" : [ ]
-      }
+[ {
+  "key" : 2251799813685310,
+  "value" : {
+    "incidentRecord" : {
+      "errorType" : "EXTRACT_VALUE_ERROR",
+      "errorMessage" : "Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'. The evaluation reported the following warnings:\n[NO_VARIABLE_FOUND] No variable found with name 'foo'",
+      "bpmnProcessId" : "process",
+      "processDefinitionKey" : 2251799813685295,
+      "processInstanceKey" : 2251799813685297,
+      "elementId" : "incidentTask",
+      "elementInstanceKey" : 2251799813685306,
+      "jobKey" : -1,
+      "variableScopeKey" : 2251799813685306,
+      "tenantId" : "<default>",
+      "elementInstancePath" : [ [ 2251799813685297, 2251799813685306 ] ],
+      "processDefinitionPath" : [ 2251799813685295 ],
+      "callingElementPath" : [ ]
     }
-  } ]
-}
+  }
+} ]

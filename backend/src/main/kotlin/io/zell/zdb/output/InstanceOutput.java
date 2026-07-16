@@ -33,7 +33,10 @@ public final class InstanceOutput {
   }
 
   public static String list(final Path partitionPath) {
-    return OutputSupport.capture(out -> writeList(out, partitionPath));
+    return OutputSupport.jsonArray(
+        item ->
+            new InstanceState(partitionPath)
+                .listInstances((key, valueJson) -> item.accept(valueJson)));
   }
 
   public static void writeList(final PrintStream out, final Path partitionPath) {

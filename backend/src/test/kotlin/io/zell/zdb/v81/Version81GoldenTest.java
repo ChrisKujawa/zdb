@@ -15,36 +15,25 @@
  */
 package io.zell.zdb.v81;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.zeebe.protocol.ZbColumnFamilies;
 import io.zell.zdb.GoldenFileAssert;
 import io.zell.zdb.SnapshotFixture;
 import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
-import io.zell.zdb.log.LogContentReader;
-import io.zell.zdb.log.LogSearch;
-import io.zell.zdb.log.LogStatus;
-import io.zell.zdb.log.LogWriter;
-import io.zell.zdb.raft.RaftStatus;
-import io.zell.zdb.state.KeyFormatters;
-import io.zell.zdb.state.ZeebeDbReader;
-import io.zell.zdb.state.incident.IncidentState;
-import io.zell.zdb.state.instance.InstanceState;
-import io.zell.zdb.state.process.ProcessState;
-import java.io.ByteArrayOutputStream;
+import io.zell.zdb.output.IncidentOutput;
+import io.zell.zdb.output.InstanceOutput;
+import io.zell.zdb.output.LogOutput;
+import io.zell.zdb.output.ProcessOutput;
+import io.zell.zdb.output.RaftOutput;
+import io.zell.zdb.output.StateOutput;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class Version81GoldenTest {
+class Version81GoldenTest {
 
   // Paths relative to backend/ module root (Maven CWD during test execution)
   static final Path SNAPSHOT_ZIP = Path.of("src/test/resources/zeebe-states/v8.1.zip");
@@ -57,14 +46,14 @@ public class Version81GoldenTest {
   static SnapshotMetadata metadata;
 
   @BeforeAll
-  public static void setUp() throws Exception {
+  static void setUp() throws Exception {
     fixture = SnapshotFixture.unzip(SNAPSHOT_ZIP, "v8.1");
     snapshotDir = fixture.snapshotDir();
     metadata = fixture.metadata();
   }
 
   @AfterAll
-  public static void tearDown() throws Exception {
+  static void tearDown() throws Exception {
     if (fixture != null) {
       fixture.cleanup();
     }
@@ -73,145 +62,112 @@ public class Version81GoldenTest {
   // ── State tests ──────────────────────────────────────────────────────────────
 
   @Test
-  public void shouldMatchStateStatistics() throws IOException {
+  void shouldMatchStateStatistics() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
 
     // when
-    final var output = new ZeebeDbReader(runtimePath).stateStatisticsAsJsonString();
+    final var output = StateOutput.statistics(runtimePath);
 
     // then
     assertOrUpdate("state-statistics.json", prettyPrint(output));
   }
 
   @Test
-  public void shouldMatchStateList() throws IOException {
+  void shouldMatchStateList() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
-    final var keyFormatters = KeyFormatters.ofDefault();
-    final var sb = new StringBuilder();
-    sb.append("{\"data\":[");
-    final boolean[] first = {true};
 
     // when
-    new ZeebeDbReader(runtimePath)
-        .visitDBWithJsonValues(
-            (cfName, key, valueJson) -> {
-              if (!first[0]) sb.append(",");
-              first[0] = false;
-              final var cf = ZbColumnFamilies.valueOf(cfName);
-              sb.append(
-                  String.format(
-                      "\n{\"cf\":\"%s\",\"key\":\"%s\",\"value\":%s}",
-                      cf, keyFormatters.forColumnFamily(cf).formatKey(key), valueJson));
-            });
-    sb.append("]}");
+    final var output = StateOutput.list(runtimePath, "", "default");
 
     // then
-    assertOrUpdate("state-list.json", sb.toString());
+    assertOrUpdate("state-list.json", output);
   }
 
   @Test
-  public void shouldMatchProcessList() throws IOException {
+  void shouldMatchProcessList() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
-    final var items = new ArrayList<JsonNode>();
 
     // when
-    new ProcessState(runtimePath).listProcesses((key, valueJson) -> parseAndAdd(items, valueJson));
-    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+    final var output = prettyPrint(ProcessOutput.list(runtimePath));
 
     // then
     assertOrUpdate("process-list.json", output);
   }
 
   @Test
-  public void shouldMatchProcessDetails() throws IOException {
+  void shouldMatchProcessDetails() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
     final var processKey = metadata.firstProcessKey();
-    final var items = new ArrayList<JsonNode>();
 
     // when
-    new ProcessState(runtimePath)
-        .processDetails(processKey, (key, valueJson) -> parseAndAdd(items, valueJson));
-    assertThat(items).as("processDetails returned no results for key %d", processKey).isNotEmpty();
-    final var output =
-        OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items.get(0));
+    final var output = prettyPrint(ProcessOutput.entity(runtimePath, processKey));
 
     // then
     assertOrUpdate("process-entity.json", output);
   }
 
   @Test
-  public void shouldMatchProcessInstances() throws IOException {
+  void shouldMatchProcessInstances() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
     final var processKey = metadata.firstProcessKey();
-    final var items = new ArrayList<JsonNode>();
 
     // when
-    new InstanceState(runtimePath)
-        .listProcessInstances(
-            r -> r.getProcessDefinitionKey() == processKey,
-            (key, valueJson) -> parseAndAdd(items, valueJson));
-    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+    final var output = prettyPrint(ProcessOutput.instances(runtimePath, processKey));
 
     // then
     assertOrUpdate("process-instances.json", output);
   }
 
   @Test
-  public void shouldMatchInstanceDetails() throws IOException {
+  void shouldMatchInstanceDetails() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
     final var processInstanceKey = metadata.processInstanceKey();
 
     // when
-    final var output =
-        prettyPrint(new InstanceState(runtimePath).getInstance(processInstanceKey));
+    final var output = prettyPrint(InstanceOutput.entity(runtimePath, processInstanceKey));
 
     // then
     assertOrUpdate("instance-entity.json", output);
   }
 
   @Test
-  public void shouldMatchInstanceList() throws IOException {
+  void shouldMatchInstanceList() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
-    final var items = new ArrayList<JsonNode>();
 
     // when
-    new InstanceState(runtimePath).listInstances((key, valueJson) -> parseAndAdd(items, valueJson));
-    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+    final var output = prettyPrint(InstanceOutput.list(runtimePath));
 
     // then
     assertOrUpdate("instance-list.json", output);
   }
 
   @Test
-  public void shouldMatchIncidentList() throws IOException {
+  void shouldMatchIncidentList() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
-    final var items = new ArrayList<JsonNode>();
 
     // when
-    new IncidentState(runtimePath).listIncidents(json -> parseAndAdd(items, json));
-    final var output = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+    final var output = prettyPrint(IncidentOutput.list(runtimePath));
 
     // then
     assertOrUpdate("incident-list.json", output);
   }
 
   @Test
-  public void shouldMatchIncidentDetails() throws IOException {
+  void shouldMatchIncidentDetails() throws IOException {
     // given
     final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), "1");
     final var incidentKey = metadata.incidentKey();
 
     // when
-    final var output =
-        prettyPrint(new IncidentState(runtimePath).incidentDetails(incidentKey));
+    final var output = prettyPrint(IncidentOutput.entity(runtimePath, incidentKey));
 
     // then
     assertOrUpdate("incident-entity.json", output);
@@ -220,93 +176,84 @@ public class Version81GoldenTest {
   // ── Log tests ────────────────────────────────────────────────────────────────
 
   @Test
-  public void shouldMatchLogStatus() throws IOException {
+  void shouldMatchLogStatus() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when
-    final var output = prettyPrint(new LogStatus(logPath).status().toString());
+    final var output = prettyPrint(LogOutput.status(logPath));
 
     // then
     assertOrUpdate("log-status.json", output);
   }
 
   @Test
-  public void shouldMatchRaftStatus() throws IOException {
+  void shouldMatchRaftStatus() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when
-    final var output = prettyPrint(new RaftStatus(logPath).detailsAsJson());
+    final var output = prettyPrint(RaftOutput.json(logPath));
 
     // then
     assertOrUpdate("raft-status.json", output);
   }
 
   @Test
-  public void shouldMatchLogContentJson() throws IOException {
+  void shouldMatchLogContentJson() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when
-    final var content = new LogContentReader(logPath).readAll();
-    final var output = prettyPrint(content.toString());
+    final var output = prettyPrint(LogOutput.contentJson(logPath));
 
     // then
     assertOrUpdate("log-print.json", output);
   }
 
   @Test
-  public void shouldMatchLogContentTable() throws IOException {
+  void shouldMatchLogContentTable() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
-    final var baos = new ByteArrayOutputStream();
 
     // when
-    final var reader = new LogContentReader(logPath);
-    new LogWriter(baos, reader).writeAsTable();
-    final var output = baos.toString(StandardCharsets.UTF_8);
+    final var output = LogOutput.printTable(logPath, 0, Long.MAX_VALUE, 0);
 
     // then
     assertOrUpdate("log-print.table", output);
   }
 
   @Test
-  public void shouldMatchLogContentDot() throws IOException {
+  void shouldMatchLogContentDot() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when
-    final var content = new LogContentReader(logPath).readAll();
-    final var output = content.asDotFile();
+    final var output = LogOutput.printDot(logPath);
 
     // then
     assertOrUpdate("log-print.dot", output);
   }
 
   @Test
-  public void shouldMatchLogSearchByPosition() throws IOException {
+  void shouldMatchLogSearchByPosition() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when — position 1 is the lowest record position; always present in the snapshot
-    final var record = new LogSearch(logPath).searchPosition(1);
-    assertThat(record).isNotNull();
-    final var output = prettyPrint(record.toString());
+    final var output = prettyPrint(LogOutput.searchPosition(logPath, 1));
 
     // then
     assertOrUpdate("log-search-position.json", output);
   }
 
   @Test
-  public void shouldMatchLogSearchByIndex() throws IOException {
+  void shouldMatchLogSearchByIndex() throws IOException {
     // given
     final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), "1");
 
     // when — index 1 is the lowest Raft index; always present in the snapshot
-    final var record = new LogSearch(logPath).searchIndex(1);
-    assertThat(record).isNotNull();
-    final var output = prettyPrint(record.toString());
+    final var output = prettyPrint(LogOutput.searchIndex(logPath, 1));
 
     // then
     assertOrUpdate("log-search-index.json", output);
@@ -322,13 +269,5 @@ public class Version81GoldenTest {
     return OBJECT_MAPPER
         .writerWithDefaultPrettyPrinter()
         .writeValueAsString(OBJECT_MAPPER.readTree(json));
-  }
-
-  private void parseAndAdd(final ArrayList<JsonNode> items, final String json) {
-    try {
-      items.add(OBJECT_MAPPER.readTree(json));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

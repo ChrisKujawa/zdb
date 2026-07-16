@@ -18,9 +18,7 @@ package io.zell.zdb;
 import java.io.PrintStream;
 import java.util.function.Consumer;
 
-/**
- * Utility class used by several commands to print valid json. It will surround json object, with c
- */
+/** Utility class used by commands and tests to print valid {@code {"data":[...]}} JSON. */
 public class JsonPrinter {
 
   private boolean moreThanOneElement = false;
@@ -31,7 +29,7 @@ public class JsonPrinter {
     this(System.out);
   }
 
-  public JsonPrinter(PrintStream stream) {
+  public JsonPrinter(final PrintStream stream) {
     this.stream = stream;
   }
 
@@ -43,7 +41,7 @@ public class JsonPrinter {
     stream.print(",");
   }
 
-  public void printElement(String element) {
+  public void printElement(final String element) {
     if (moreThanOneElement) {
       printSeparator();
     }
@@ -55,7 +53,7 @@ public class JsonPrinter {
     stream.print("]}");
   }
 
-  public void surround(Consumer<Consumer<String>> toBeSurrounded) {
+  public void surround(final Consumer<Consumer<String>> toBeSurrounded) {
     printHeading();
     toBeSurrounded.accept(this::printElement);
     printEnd();

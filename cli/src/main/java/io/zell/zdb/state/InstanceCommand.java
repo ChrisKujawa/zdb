@@ -15,7 +15,7 @@
  */
 package io.zell.zdb.state;
 
-import io.zell.zdb.state.instance.InstanceState;
+import io.zell.zdb.output.InstanceOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -54,8 +54,7 @@ public class InstanceCommand implements Callable<Integer> {
               description = "The key of the process or element instance",
               arity = "1")
           final long key) {
-    final var instanceDetails = new InstanceState(partitionPath).getInstance(key);
-    System.out.println(instanceDetails);
+    InstanceOutput.writeEntity(System.out, partitionPath, key);
     return 0;
   }
 }

@@ -15,7 +15,7 @@
  */
 package io.zell.zdb;
 
-import io.zell.zdb.state.incident.IncidentState;
+import io.zell.zdb.output.IncidentOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.*;
@@ -45,12 +45,7 @@ public class IncidentCommand implements Callable<Integer> {
 
   @Command(name = "list", description = "List all incidents")
   public int list() {
-    new JsonPrinter()
-        .surround(
-            (printer) -> {
-              final var incidentState = new IncidentState(partitionPath);
-              incidentState.listIncidents(printer::accept);
-            });
+    IncidentOutput.writeList(System.out, partitionPath);
     return 0;
   }
 
@@ -58,7 +53,7 @@ public class IncidentCommand implements Callable<Integer> {
   public int entity(
       @Parameters(paramLabel = "KEY", description = "The key of the incident", arity = "1")
           final long key) {
-    System.out.println(new IncidentState(partitionPath).incidentDetails(key));
+    IncidentOutput.writeEntity(System.out, partitionPath, key);
     return 0;
   }
 }

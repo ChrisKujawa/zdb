@@ -15,12 +15,9 @@
  */
 package io.zell.zdb.journal;
 
-import io.zell.zdb.raft.RaftStatus;
+import io.zell.zdb.output.RaftOutput;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;
 
 @SuppressWarnings("unused")
@@ -55,68 +52,11 @@ public class RaftCommand implements Callable<Integer> {
   @CommandLine.Command(name = "status", description = "Print's the metadata of the Raft server")
   public int status() {
     if (this.format == Format.JSON) {
-      System.out.println(new RaftStatus(this.partitionPath).detailsAsJson());
+      RaftOutput.writeJson(System.out, this.partitionPath);
     } else {
-      printDetailsAsTable();
+      RaftOutput.writeTable(System.out, this.partitionPath);
     }
     return 0;
-  }
-
-  private void printDetailsAsTable() {
-    final var status = new RaftStatus(this.partitionPath).details();
-    System.out.printf(
-        """
-            --------------------------------------------------------------
-            Raft Status for partition '%s':
-            --------------------------------------------------------------
-            Meta Store:
-                Term:                    %d
-                Last Flushed Index:      %d
-                Commit Index:            %d
-                Voted For:               %s%n""",
-        this.partitionPath.getFileName(),
-        status.meta().term(),
-        status.meta().lastFlushedIndex(),
-        status.meta().commitIndex(),
-        status.meta().votedFor());
-    System.out.printf(
-        """
-            --------------------------------------------------------------
-            Configuration:
-                Index:                   %d
-                Term:                    %d
-                Time:                    %d
-                Force:                   %b
-                Requires Join Consensus: %b
-                New Members:             %s
-                Old Members:             %s
-            --------------------------------------------------------------""",
-        status.config().index(),
-        status.config().term(),
-        status.config().time(),
-        status.config().force(),
-        status.config().requiresJointConsensus(),
-        formatMembers(status.config().newMembers()),
-        formatMembers(status.config().oldMembers()));
-  }
-
-  @NotNull
-  private static String formatMembers(final Collection<RaftStatus.RaftMemberDetails> members) {
-    if (members.isEmpty()) {
-      return "[]";
-    }
-
-    return "["
-        + System.lineSeparator()
-        + members.stream()
-            .map(
-                m ->
-                    """
-            \t\tId: %s, Type: %s, Hash: %d, Updated: %s"""
-                        .formatted(m.id(), m.type(), m.hash(), m.lastUpdated()))
-            .collect(Collectors.joining(System.lineSeparator()))
-        + System.lineSeparator()
-        + "    ]";
   }
 
   @Override

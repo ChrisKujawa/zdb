@@ -15,9 +15,7 @@
  */
 package io.zell.zdb.state;
 
-import io.zell.zdb.JsonPrinter;
-import io.zell.zdb.state.instance.InstanceState;
-import io.zell.zdb.state.process.ProcessState;
+import io.zell.zdb.output.ProcessOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -51,11 +49,7 @@ public class ProcessCommand implements Callable<Integer> {
 
   @Command(name = "list", description = "List all processes")
   public int list() {
-    new JsonPrinter()
-        .surround(
-            (printer) ->
-                new ProcessState(partitionPath)
-                    .listProcesses((key, valueJson) -> printer.accept(valueJson)));
+    ProcessOutput.writeList(System.out, partitionPath);
     return 0;
   }
 
@@ -63,11 +57,7 @@ public class ProcessCommand implements Callable<Integer> {
   public int entity(
       @Parameters(paramLabel = "KEY", description = "The key of the process", arity = "1")
           final long key) {
-    new JsonPrinter()
-        .surround(
-            (printer) ->
-                new ProcessState(partitionPath)
-                    .processDetails(key, (k, valueJson) -> printer.accept(valueJson)));
+    ProcessOutput.writeEntity(System.out, partitionPath, key);
     return 0;
   }
 
@@ -75,16 +65,7 @@ public class ProcessCommand implements Callable<Integer> {
   public int instances(
       @Parameters(paramLabel = "KEY", description = "The key of the process", arity = "1")
           final long key) {
-
-    new JsonPrinter()
-        .surround(
-            (printer) ->
-                new InstanceState(partitionPath)
-                    .listProcessInstances(
-                        processInstanceRecordDetails ->
-                            processInstanceRecordDetails.getProcessDefinitionKey() == key,
-                        (key1, valueJson) -> printer.accept(valueJson)));
-
+    ProcessOutput.writeInstances(System.out, partitionPath, key);
     return 0;
   }
 }

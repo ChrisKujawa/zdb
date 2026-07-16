@@ -15,8 +15,7 @@
  */
 package io.zell.zdb.journal;
 
-import io.zell.zdb.log.LogContentReader;
-import io.zell.zdb.log.LogWriter;
+import io.zell.zdb.output.LogOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -73,45 +72,14 @@ public class LogPrintCommand implements Callable<Integer> {
   @Override
   public Integer call() {
     final Path partitionPath = spec.findOption("-p").getValue();
-    final var logContentReader = new LogContentReader(partitionPath);
 
     switch (format) {
-      case DOT -> {
-        // for backwards compatibility
-        final var logContent = logContentReader.readAll();
-        System.out.println(logContent.asDotFile());
-      }
-      case TABLE -> printTable(logContentReader);
-      default -> printJson(logContentReader);
+      case DOT -> LogOutput.writeDot(System.out, partitionPath);
+      case TABLE ->
+          LogOutput.writeTable(System.out, partitionPath, fromPosition, toPosition, instanceKey);
+      default ->
+          LogOutput.writeJson(System.out, partitionPath, fromPosition, toPosition, instanceKey);
     }
     return 0;
-  }
-
-  private void printTable(LogContentReader logContentReader) {
-    logContentReader.seekToPosition(fromPosition);
-    logContentReader.limitToPosition(toPosition);
-    if (instanceKey > 0) {
-      logContentReader.filterForProcessInstance(instanceKey);
-    }
-
-    new LogWriter(System.out, logContentReader).writeAsTable();
-  }
-
-  private void printJson(LogContentReader logContentReader) {
-    System.out.println("[");
-    logContentReader.seekToPosition(fromPosition);
-    logContentReader.limitToPosition(toPosition);
-    if (instanceKey > 0) {
-      logContentReader.filterForProcessInstance(instanceKey);
-    }
-
-    var separator = "";
-    while (logContentReader.hasNext()) {
-      final var record = logContentReader.next();
-
-      System.out.print(separator + record);
-      separator = ",";
-    }
-    System.out.println("]");
   }
 }

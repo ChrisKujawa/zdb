@@ -15,7 +15,7 @@
  */
 package io.zell.zdb.journal;
 
-import io.zell.zdb.log.LogSearch;
+import io.zell.zdb.output.LogOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.ArgGroup;
@@ -36,15 +36,11 @@ public class LogSearchCommand implements Callable<Integer> {
   public Integer call() {
     final Path logPath = spec.findOption("-p").getValue();
 
-    final String result;
     if (exclusive.index == 0) {
-      final var record = new LogSearch(logPath).searchPosition(exclusive.position);
-      result = record == null ? "{}" : record.toString();
+      LogOutput.writeSearchPosition(System.out, logPath, exclusive.position);
     } else {
-      final var logContent = new LogSearch(logPath).searchIndex(exclusive.index);
-      result = logContent == null ? "{}" : logContent.toString();
+      LogOutput.writeSearchIndex(System.out, logPath, exclusive.index);
     }
-    System.out.println(result);
     return 0;
   }
 

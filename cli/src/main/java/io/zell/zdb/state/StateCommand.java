@@ -15,8 +15,7 @@
  */
 package io.zell.zdb.state;
 
-import io.camunda.zeebe.protocol.ZbColumnFamilies;
-import io.zell.zdb.JsonPrinter;
+import io.zell.zdb.output.StateOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
@@ -29,8 +28,6 @@ import picocli.CommandLine.Option;
     description = "Prints general information of the internal state")
 public class StateCommand implements Callable<Integer> {
 
-  public static final String ENTRY_FORMAT = "\n{\"cf\":\"%s\",\"key\":\"%s\",\"value\":%s}";
-
   @Option(
       names = {"-p", "--path"},
       paramLabel = "PARTITION_PATH",
@@ -41,8 +38,7 @@ public class StateCommand implements Callable<Integer> {
 
   @Override
   public Integer call() {
-    final var jsonString = new ZeebeDbReader(this.partitionPath).stateStatisticsAsJsonString();
-    System.out.println(jsonString);
+    StateOutput.writeStatistics(System.out, partitionPath);
     return 0;
   }
 
@@ -59,50 +55,7 @@ public class StateCommand implements Callable<Integer> {
               description =
                   "The format of the key (default, hex, or a format string like 'silbB' for 'string, int, long, byte, byte[])")
           final String keyFormat) {
-    final var keyFormatters = chooseKeyFormatters(keyFormat);
-
-    new JsonPrinter()
-        .surround(
-            (printer) -> {
-              final var zeebeDbReader = new ZeebeDbReader(this.partitionPath);
-              // we print incrementally in order to avoid to build up big state in the application
-              if (noColumnFamilyGiven(columnFamilyName)) {
-                zeebeDbReader.visitDBWithJsonValues(
-                    ((cfName, key, valueJson) -> {
-                      final var cf = ZbColumnFamilies.valueOf(cfName);
-                      printer.accept(
-                          String.format(
-                              ENTRY_FORMAT,
-                              cf,
-                              keyFormatters.forColumnFamily(cf).formatKey(key),
-                              valueJson));
-                    }));
-              } else {
-                final var cf = ZbColumnFamilies.valueOf(columnFamilyName.toUpperCase());
-                zeebeDbReader.visitDBWithPrefix(
-                    cf,
-                    ((key, valueJson) ->
-                        printer.accept(
-                            String.format(
-                                ENTRY_FORMAT,
-                                cf,
-                                keyFormatters.forColumnFamily(cf).formatKey(key),
-                                valueJson))));
-              }
-            });
+    StateOutput.writeList(System.out, partitionPath, columnFamilyName, keyFormat);
     return 0;
-  }
-
-  private KeyFormatters chooseKeyFormatters(final String keyFormat) {
-    return switch (keyFormat) {
-      case "default", "" -> KeyFormatters.ofDefault();
-      case null -> KeyFormatters.ofDefault();
-      case "hex" -> KeyFormatters.ofHex();
-      default -> KeyFormatters.ofFormat(keyFormat);
-    };
-  }
-
-  private static boolean noColumnFamilyGiven(final String columnFamilyName) {
-    return columnFamilyName == null || columnFamilyName.isEmpty();
   }
 }

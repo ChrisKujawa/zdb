@@ -15,7 +15,7 @@
  */
 package io.zell.zdb.journal;
 
-import io.zell.zdb.log.LogStatus;
+import io.zell.zdb.output.LogOutput;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -43,9 +43,7 @@ public class LogCommand implements Callable<Integer> {
 
   @Command(name = "status", description = "Print's the status of the log")
   public int status() {
-    System.out.println();
-    final var status = new LogStatus(partitionPath).status();
-    System.out.println(status);
+    LogOutput.writeStatus(System.out, partitionPath);
     return 0;
   }
 

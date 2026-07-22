@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-import static io.zell.zdb.TestUtils.createZeebeContainerGreaterOrEquals88;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.camunda.zeebe.client.api.response.DeploymentEvent;
-import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
 import io.camunda.zeebe.db.impl.ZeebeDbConstants;
-import io.camunda.zeebe.model.bpmn.Bpmn;
-import io.camunda.zeebe.model.bpmn.BpmnModelInstance;
 import io.camunda.zeebe.protocol.ZbColumnFamilies;
 import io.camunda.zeebe.test.util.MsgPackUtil;
 import io.camunda.zeebe.util.FileUtil;
-import io.zeebe.containers.ZeebeContainer;
 import io.zell.zdb.state.ZeebeDbReader;
 import io.zell.zdb.state.process.ProcessState;
 import java.io.File;
@@ -35,56 +29,22 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicLong;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.FlushOptions;
 import org.rocksdb.RocksDB;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
 public class ZeebeStateTest {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ZeebeStateTest.class);
   private static final File tempDir =
       new File("/tmp/", "data-" + ThreadLocalRandom.current().nextLong());
 
   static {
-    // for the Zeebe container the folder need to exist
     tempDir.mkdirs();
   }
-
-  private static final BpmnModelInstance process =
-      Bpmn.createExecutableProcess("process")
-          .startEvent()
-          .parallelGateway("gw")
-          .serviceTask("task")
-          .zeebeJobType("type")
-          .endEvent()
-          .moveToLastGateway()
-          .serviceTask("incidentTask")
-          .zeebeInputExpression("=foo", "bar")
-          .zeebeJobType("type")
-          .endEvent()
-          .done();
-  private static final String CONTAINER_PATH = "/usr/local/zeebe/data/";
-
-  @Container
-  public static ZeebeContainer zeebeContainer =
-      createZeebeContainerGreaterOrEquals88(DockerImageName.parse("camunda/camunda:8.8.0"), tempDir.getPath(), LOGGER);
-
-  private static DeploymentEvent deploymentEvent;
-  private static ProcessInstanceEvent returnedProcessInstance;
-  private static CountDownLatch jobLatch;
-  private static final AtomicLong jobKey = new AtomicLong();
 
   @BeforeAll
   public static void setup() throws Exception {

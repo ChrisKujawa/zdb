@@ -1,0 +1,32 @@
+{
+  "parentKey" : -1,
+  "childCount" : 2,
+  "childActivatedCount" : 0,
+  "childCompletedCount" : 0,
+  "childTerminatedCount" : 0,
+  "jobKey" : 0,
+  "multiInstanceLoopCounter" : 0,
+  "interruptingElementId" : "",
+  "calledChildInstanceKey" : -1,
+  "elementRecord" : {
+    "key" : 2251799813685252,
+    "state" : "ELEMENT_ACTIVATED",
+    "processInstanceRecord" : {
+      "bpmnElementType" : "PROCESS",
+      "elementId" : "process",
+      "bpmnProcessId" : "process",
+      "version" : 1,
+      "processDefinitionKey" : 2251799813685250,
+      "processInstanceKey" : 2251799813685252,
+      "flowScopeKey" : -1,
+      "bpmnEventType" : "UNSPECIFIED",
+      "parentProcessInstanceKey" : -1,
+      "parentElementInstanceKey" : -1,
+      "tenantId" : "<default>"
+    }
+  },
+  "activeSequenceFlows" : 0,
+  "activeSequenceFlowIds" : [ ],
+  "userTaskKey" : -1,
+  "executionListenerIndex" : 0
+}

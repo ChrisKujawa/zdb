@@ -1,0 +1,17 @@
+[ {
+  "key" : 2251799813685265,
+  "value" : {
+    "incidentRecord" : {
+      "errorType" : "EXTRACT_VALUE_ERROR",
+      "errorMessage" : "Expected result of the expression 'foo' to be 'NUMBER', but was 'NULL'.",
+      "bpmnProcessId" : "process",
+      "processDefinitionKey" : 2251799813685249,
+      "processInstanceKey" : 2251799813685252,
+      "elementId" : "incidentTask",
+      "elementInstanceKey" : 2251799813685261,
+      "jobKey" : -1,
+      "variableScopeKey" : 2251799813685261,
+      "tenantId" : "<default>"
+    }
+  }
+} ]

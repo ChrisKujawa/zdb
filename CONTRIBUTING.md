@@ -35,17 +35,22 @@ When a ZDB behavior change causes golden tests to fail and the new output is cor
 # Regenerate all golden files for v8.8
 mvn test -pl backend -DskipTests=false -DupdateGoldens=true -Dtest=Version88GoldenTest
 
+# To regenerate all versions at once:
+mvn test -pl backend -DskipTests=false -DupdateGoldens=true \
+  '-Dtest=Version81GoldenTest,Version82GoldenTest,Version83GoldenTest,Version84GoldenTest,Version85GoldenTest,Version86GoldenTest,Version87GoldenTest,Version88GoldenTest'
+
 # Review what changed
-git diff backend/src/test/resources/golden/v8.8/
+git diff backend/src/test/resources/golden/
 
 # Commit if the diff looks right
-git add backend/src/test/resources/golden/v8.8/ && git commit -m "test: update v8.8 golden files"
+git add backend/src/test/resources/golden/ && git commit -m "test: update golden files"
 ```
 
-**Regenerating the snapshot (rare — only needed when Zeebe changes its on-disk format):**
+**Regenerating a snapshot (rare - only needed when Zeebe changes its on-disk format):**
 
 ```bash
-mvn test -pl backend -DskipTests=false -Dgroups=snapshot-generator -Dtest=SnapshotGeneratorV88Test
+# Override the default surefire.excludedGroups to un-exclude snapshot-generator tests
+mvn test -pl backend -DskipTests=false '-Dsurefire.excludedGroups=' -Dtest=SnapshotGeneratorV88Test
 git add backend/src/test/resources/zeebe-states/v8.8.zip && git commit -m "test: regenerate v8.8 snapshot"
 # Then regenerate golden files as above
 ```
@@ -53,7 +58,7 @@ git add backend/src/test/resources/zeebe-states/v8.8.zip && git commit -m "test:
 **Adding a new Zeebe version:**
 
 1. Copy `SnapshotGeneratorV88Test` to `SnapshotGeneratorV89Test`, update the Docker image tag
-2. Run the generator: `mvn test -pl backend -DskipTests=false -Dgroups=snapshot-generator -Dtest=SnapshotGeneratorV89Test`
+2. Run the generator: `mvn test -pl backend -DskipTests=false '-Dsurefire.excludedGroups=' -Dtest=SnapshotGeneratorV89Test`
 3. Copy `Version88GoldenTest` to `Version89GoldenTest`, update paths to `v8.9`
 4. Seed golden files: `mvn test -pl backend -DskipTests=false -DupdateGoldens=true -Dtest=Version89GoldenTest`
 5. Commit the new snapshot and golden files

@@ -31,10 +31,8 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.value.BpmnElementType;
 import io.camunda.zeebe.protocol.record.value.ErrorType;
-import io.camunda.zeebe.util.FileUtil;
-import io.zeebe.containers.ZeebeContainer;
-import io.zell.zdb.TestUtils;
-import io.zell.zdb.ZeebeContentCreator;
+import io.zell.zdb.SnapshotFixture;
+import io.zell.zdb.SnapshotMetadata;
 import io.zell.zdb.ZeebePaths;
 import io.zell.zdb.log.LogContentReader;
 import io.zell.zdb.log.LogSearch;
@@ -60,16 +58,30 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
 public class Version82Test {
-  private static final DockerImageName DOCKER_IMAGE = DockerImageName.parse("camunda/zeebe:8.2.16");
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final Path SNAPSHOT_ZIP = Path.of("src/test/resources/zeebe-states/v8.2.zip");
+  private static final String PARTITION = "1";
+  private static final long INCIDENT_TASK_ELEMENT_KEY = 2251799813685261L;
+  private static SnapshotFixture fixture;
+  private static Path snapshotDir;
+  private static SnapshotMetadata metadata;
+
+  @BeforeAll
+  public static void setup() throws Exception {
+    fixture = SnapshotFixture.unzip(SNAPSHOT_ZIP, "v8.2");
+    snapshotDir = fixture.snapshotDir();
+    metadata = fixture.metadata();
+  }
+
+  @AfterAll
+  public static void cleanup() throws Exception {
+    if (fixture != null) {
+      fixture.cleanup();
+    }
+  }
+
   private static final BpmnModelInstance PROCESS =
       Bpmn.createExecutableProcess("process")
           .startEvent()
@@ -85,85 +97,13 @@ public class Version82Test {
           .done();
 
   @Nested
-  public class LargeLogTest {
-    // earlier ZDB versions failed on large logs, because of segments were async created and
-    // incomplete
-    private static final Logger LOGGER = LoggerFactory.getLogger(LargeLogTest.class);
-    private static final File TEMP_DIR = TestUtils.newTmpFolder(LargeLogTest.class);
-    private static final ZeebeContentCreator zeebeContentCreator = new ZeebeContentCreator(PROCESS);
-
-    @Container
-    public static ZeebeContainer zeebeContainer =
-        TestUtils.createZeebeContainerBefore85(DOCKER_IMAGE, TEMP_DIR.getPath(), LOGGER);
-
-    static {
-      TEMP_DIR.mkdirs();
-    }
-
-    @BeforeAll
-    public static void setup() {
-      zeebeContentCreator.createLargeContent(zeebeContainer.getExternalGatewayAddress());
-    }
-
-    @AfterAll
-    public static void cleanup() throws Exception {
-      FileUtil.deleteFolderIfExists(TEMP_DIR.toPath());
-    }
-
-    @Test
-    public void shouldReadStatusFromLog() {
-      // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
-      final var logStatus = new LogStatus(logPath);
-
-      // when
-      final var status = logStatus.status();
-
-      // then
-      assertThat(status.getHighestIndex()).isEqualTo(213);
-      assertThat(status.getHighestTerm()).isEqualTo(1);
-      assertThat(status.getHighestRecordPosition()).isEqualTo(260);
-      assertThat(status.getLowestIndex()).isEqualTo(1);
-      assertThat(status.getLowestRecordPosition()).isEqualTo(1);
-
-      assertThat(status.toString())
-          .contains("lowestRecordPosition")
-          .contains("highestRecordPosition")
-          .contains("highestTerm")
-          .contains("highestIndex")
-          .contains("lowestIndex");
-    }
-  }
-
-  @Nested
   public class ZeebeLogTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZeebeLogTest.class);
-    private static final File TEMP_DIR = TestUtils.newTmpFolder(ZeebeLogTest.class);
-    private static final ZeebeContentCreator zeebeContentCreator = new ZeebeContentCreator(PROCESS);
-
-    @Container
-    public static ZeebeContainer zeebeContainer =
-        TestUtils.createZeebeContainerBefore85(DOCKER_IMAGE, TEMP_DIR.getPath(), LOGGER);
-
-    static {
-      TEMP_DIR.mkdirs();
-    }
-
-    @BeforeAll
-    public static void setup() {
-      zeebeContentCreator.createContent(zeebeContainer.getExternalGatewayAddress());
-    }
-
-    @AfterAll
-    public static void cleanup() throws Exception {
-      FileUtil.deleteFolderIfExists(TEMP_DIR.toPath());
-    }
 
     @Test
     public void shouldReadStatusFromLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logStatus = new LogStatus(logPath);
 
       // when
@@ -198,7 +138,7 @@ public class Version82Test {
     @Test
     public void shouldBuildLogContent() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -215,7 +155,7 @@ public class Version82Test {
     @Test
     public void shouldReadLogContentWithIterator() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
 
@@ -229,7 +169,7 @@ public class Version82Test {
     @Test
     public void shouldReadRejection() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -267,7 +207,7 @@ public class Version82Test {
                     "startInstructions":[]}}
                     }
 """);
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -309,10 +249,10 @@ public class Version82Test {
                     "flowScopeKey":-1,"bpmnEventType":"UNSPECIFIED","parentProcessInstanceKey":-1,
                     "parentElementInstanceKey":-1}}
 """);
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       logContentReader.filterForProcessInstance(
-          zeebeContentCreator.processInstanceEvent.getProcessInstanceKey());
+          metadata.processInstanceKey());
 
       // when
       final var piActivated =
@@ -340,7 +280,7 @@ public class Version82Test {
     @Test
     public void shouldSkipFirstPartOfLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(10);
@@ -381,7 +321,7 @@ public class Version82Test {
     @Test
     public void shouldNotSkipIfNegativeSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(-1);
@@ -396,7 +336,7 @@ public class Version82Test {
     @Test
     public void shouldNotSkipIfZeroSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(0);
@@ -411,7 +351,7 @@ public class Version82Test {
     @Test
     public void shouldSeekToEndOfLogIfNoExistingSeek() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(Long.MAX_VALUE);
@@ -450,7 +390,7 @@ public class Version82Test {
     @Test
     public void shouldLimitLogToPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(30);
@@ -489,7 +429,7 @@ public class Version82Test {
     @Test
     public void shouldLimitViaPositionExclusive() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(1);
@@ -509,7 +449,7 @@ public class Version82Test {
     @Test
     public void shouldConvertRecordToColumn() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.limitToPosition(2);
@@ -536,7 +476,7 @@ public class Version82Test {
     @Test
     public void shouldWriteTableHeaderToStreamWhenNoDataFound() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var outputStream = new ByteArrayOutputStream();
       logContentReader.limitToPosition(30);
@@ -556,7 +496,7 @@ public class Version82Test {
     @Test
     public void shouldWriteTableToStream() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       final var outputStream = new ByteArrayOutputStream();
@@ -580,7 +520,7 @@ public class Version82Test {
     @Test
     public void shouldSeekAndLimitLogWithPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.seekToPosition(5);
@@ -620,7 +560,7 @@ public class Version82Test {
     @Test
     public void shouldFilterWithProcessInstanceKey() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(2251799813685252L);
@@ -659,7 +599,7 @@ public class Version82Test {
     @Test
     public void shouldFilterWithNoExistingProcessInstanceKey() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(0xCAFE);
@@ -674,7 +614,7 @@ public class Version82Test {
     @Test
     public void shouldFilterWithProcessInstanceKeyAndSetBeginAndEndOfLogPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var records = new ArrayList<PersistedRecord>();
       logContentReader.filterForProcessInstance(2251799813685252L);
@@ -744,7 +684,7 @@ public class Version82Test {
     @Test
     public void shouldReturnLogContentAsDotFile() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
       final var content = logContentReader.readAll();
 
@@ -758,7 +698,7 @@ public class Version82Test {
     @Test
     public void shouldContainNoDuplicatesInLogContent() throws JsonProcessingException {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logContentReader = new LogContentReader(logPath);
 
       // when
@@ -777,7 +717,7 @@ public class Version82Test {
     @Test
     public void shouldSearchPositionInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
       final var position = 1;
 
@@ -792,7 +732,7 @@ public class Version82Test {
     @Test
     public void shouldReturnNullOnNegPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -805,7 +745,7 @@ public class Version82Test {
     @Test
     public void shouldReturnNullOnToBigPosition() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -818,7 +758,7 @@ public class Version82Test {
     @Test
     public void shouldSearchIndexInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
       final var index = 7;
 
@@ -832,7 +772,7 @@ public class Version82Test {
     @Test
     public void shouldNotReturnDuplicatesWhenSearchForIndexInLog() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
       final var index = 7;
 
@@ -852,7 +792,7 @@ public class Version82Test {
     @Test
     public void shouldReturnNullOnNegIndex() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -865,7 +805,7 @@ public class Version82Test {
     @Test
     public void shouldReturnNullOnToBigIndex() {
       // given
-      final var logPath = ZeebePaths.Companion.getLogPath(TEMP_DIR, "1");
+      final var logPath = ZeebePaths.Companion.getLogPath(snapshotDir.toFile(), PARTITION);
       final var logSearch = new LogSearch(logPath);
 
       // when
@@ -878,33 +818,10 @@ public class Version82Test {
 
   @Nested
   public class ZeebeStateTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZeebeStateTest.class);
-    private static final File TEMP_DIR = TestUtils.newTmpFolder(ZeebeStateTest.class);
-    private static final ZeebeContentCreator zeebeContentCreator = new ZeebeContentCreator(PROCESS);
-
-    @Container
-    public static ZeebeContainer zeebeContainer =
-        TestUtils.createZeebeContainerBefore85(DOCKER_IMAGE, TEMP_DIR.getPath(), LOGGER);
-
-    static {
-      TEMP_DIR.mkdirs();
-    }
-
-    @BeforeAll
-    public static void setup() {
-      zeebeContentCreator.createContent(zeebeContainer.getExternalGatewayAddress());
-    }
-
-    @AfterAll
-    public static void cleanup() throws Exception {
-      FileUtil.deleteFolderIfExists(TEMP_DIR.toPath());
-    }
-
     @Test
     public void shouldCreateStatsForCompleteState() {
       // given
-      final var experimental =
-          new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var experimental = new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
 
       // when
       final var cfMap = experimental.stateStatistics();
@@ -918,15 +835,14 @@ public class Version82Test {
     }
 
     @Test
-    public void shouldVisitValuesAsJson() {
+    public void shouldVisitValuesAsJson() throws JsonProcessingException {
       // given
-      final var experimental =
-          new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
-      final var incidentMap = new HashMap<String, String>();
+      final var experimental = new ZeebeDbReader(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
+      final var incidents = new ArrayList<String>();
       final ZeebeDbReader.JsonValueVisitor jsonVisitor =
           (cf, k, v) -> {
             if (cf.equals(ZbColumnFamilies.INCIDENTS.name())) {
-              incidentMap.put(new String(k), v);
+              incidents.add(v);
             }
           };
 
@@ -934,15 +850,24 @@ public class Version82Test {
       experimental.visitDBWithJsonValues(jsonVisitor);
 
       // then
-      assertThat(incidentMap)
-          .containsValue(
-              "{\"incidentRecord\":{\"errorType\":\"IO_MAPPING_ERROR\",\"errorMessage\":\"failed to evaluate expression '{bar:foo}': no variable found for name 'foo'\",\"bpmnProcessId\":\"process\",\"processDefinitionKey\":2251799813685249,\"processInstanceKey\":2251799813685252,\"elementId\":\"incidentTask\",\"elementInstanceKey\":2251799813685261,\"jobKey\":-1,\"variableScopeKey\":2251799813685261}}");
+      assertThat(incidents).hasSize(1);
+      final var incident = OBJECT_MAPPER.readTree(incidents.get(0)).get("incidentRecord");
+      assertThat(incident.get("errorType").asText()).isEqualTo(ErrorType.IO_MAPPING_ERROR.toString());
+      assertThat(incident.get("errorMessage").asText())
+          .isEqualTo("failed to evaluate expression '{bar:foo}': no variable found for name 'foo'");
+      assertThat(incident.get("bpmnProcessId").asText()).isEqualTo("process");
+      assertThat(incident.get("processDefinitionKey").asLong()).isEqualTo(metadata.firstProcessKey());
+      assertThat(incident.get("processInstanceKey").asLong()).isEqualTo(metadata.processInstanceKey());
+      assertThat(incident.get("elementId").asText()).isEqualTo("incidentTask");
+      assertThat(incident.get("elementInstanceKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
+      assertThat(incident.get("variableScopeKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
+      assertThat(incident.get("jobKey").asLong()).isEqualTo(-1L);
     }
 
     @Test
     public void shouldListProcesses() {
       // given
-      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var processes = new HashMap<Long, String>();
 
       // when
@@ -953,38 +878,31 @@ public class Version82Test {
                   valueJson));
 
       // then
-      assertThat(processes).containsKey(2251799813685249L).containsKey(2251799813685250L);
+      assertThat(processes).containsKey(metadata.firstProcessKey()).containsKey(metadata.secondProcessKey());
     }
 
     @Test
     public void shouldGetProcessDetails() throws JsonProcessingException {
       // given
       final var processes = new ArrayList<String>();
-      final Path runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
+      final Path runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION);
       final var processState = new ProcessState(runtimePath);
-      final var returnedProcess = zeebeContentCreator.deploymentEvent.getProcesses().get(0);
 
       // when
-      processState.processDetails(
-          returnedProcess.getProcessDefinitionKey(), (k, v) -> processes.add(v));
+      processState.processDetails(metadata.firstProcessKey(), (k, v) -> processes.add(v));
 
       // then
       assertThat(processes).hasSize(1);
-
-      final var objectMapper = new ObjectMapper();
-
-      final var jsonNode = objectMapper.readTree(processes.get(0));
-
-      assertThat(jsonNode.get("bpmnProcessId").asText())
-          .isEqualTo(returnedProcess.getBpmnProcessId());
-      assertThat(jsonNode.get("key").asLong()).isEqualTo(returnedProcess.getProcessDefinitionKey());
-      assertThat(jsonNode.get("resourceName").asText())
-          .isEqualTo(returnedProcess.getResourceName());
-      assertThat(jsonNode.get("version").asInt()).isEqualTo(returnedProcess.getVersion());
-      assertThat(jsonNode.get("resource").asText())
-          .isEqualTo(
-              Base64.getEncoder()
-                  .encodeToString(Bpmn.convertToString(PROCESS).getBytes(StandardCharsets.UTF_8)));
+      final var jsonNode = OBJECT_MAPPER.readTree(processes.get(0));
+      assertThat(jsonNode.get("bpmnProcessId").asText()).isEqualTo("process");
+      assertThat(jsonNode.get("key").asLong()).isEqualTo(metadata.firstProcessKey());
+      assertThat(jsonNode.get("resourceName").asText()).isEqualTo("process.bpmn");
+      assertThat(jsonNode.get("version").asInt()).isEqualTo(1);
+      final var resourceXml = new String(Base64.getDecoder().decode(jsonNode.get("resource").asText()), StandardCharsets.UTF_8);
+      assertThat(resourceXml)
+          .contains("<process id=\"process\"")
+          .contains("id=\"task\"")
+          .contains("id=\"incidentTask\"");
     }
 
     @Test
@@ -993,7 +911,7 @@ public class Version82Test {
       final var processes = new ArrayList<String>();
 
       // when
-      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new ProcessState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       processState.processDetails(0xCAFE, (k, v) -> processes.add(v));
 
       // then
@@ -1003,12 +921,10 @@ public class Version82Test {
     @Test
     public void shouldGetProcessInstanceDetails() throws JsonProcessingException {
       // given
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
-      final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
+      final var processInstanceKey = metadata.processInstanceKey();
 
       // when
-      final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new InstanceState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var actualInstanceDetails = processState.getInstance(processInstanceKey);
 
       // then
@@ -1016,36 +932,20 @@ public class Version82Test {
       final var instanceAsJson = OBJECT_MAPPER.readTree(actualInstanceDetails);
       final var elementRecord = instanceAsJson.get("elementRecord");
       assertThat(elementRecord.get("key").asLong()).isEqualTo(processInstanceKey);
-      assertThat(elementRecord.get("state").asText())
-          .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
-      final var processInstanceRecord = elementRecord.get("processInstanceRecord");
-      assertThat(processInstanceRecord.get("bpmnProcessId").asText())
-          .isEqualTo(processInstanceEvent.getBpmnProcessId());
-      assertThat(processInstanceRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(processInstanceRecord.get("version").asInt())
-          .isEqualTo(processInstanceEvent.getVersion());
-      assertThat(processInstanceRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo("process");
-      assertThat(processInstanceRecord.get("bpmnElementType").asText())
-          .isEqualTo(BpmnElementType.PROCESS.name());
-      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(-1);
+      assertThat(elementRecord.get("state").asText()).isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
+      assertProcessInstanceRecord(
+          elementRecord.get("processInstanceRecord"), "process", BpmnElementType.PROCESS, -1L);
       assertThat(instanceAsJson.get("childCount").asInt()).isEqualTo(2);
     }
 
     @Test
     public void shouldGetElementInstanceDetails() throws JsonProcessingException {
       // given
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
-      final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
-      final var elementInstanceKey = 2251799813685263L;
+      final var processInstanceKey = metadata.processInstanceKey();
+      final var elementInstanceKey = metadata.elementInstanceKey();
 
       // when
-      final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new InstanceState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var actualInstanceDetails = processState.getInstance(elementInstanceKey);
 
       // then
@@ -1053,34 +953,21 @@ public class Version82Test {
       final var instanceAsJson = OBJECT_MAPPER.readTree(actualInstanceDetails);
       final var elementRecord = instanceAsJson.get("elementRecord");
       assertThat(elementRecord.get("key").asLong()).isEqualTo(elementInstanceKey);
-      assertThat(elementRecord.get("state").asText())
-          .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
-      final var processInstanceRecord = elementRecord.get("processInstanceRecord");
-      assertThat(processInstanceRecord.get("bpmnProcessId").asText())
-          .isEqualTo(processInstanceEvent.getBpmnProcessId());
-      assertThat(processInstanceRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(processInstanceRecord.get("version").asInt())
-          .isEqualTo(processInstanceEvent.getVersion());
-      assertThat(processInstanceRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo("task");
-      assertThat(processInstanceRecord.get("bpmnElementType").asText())
-          .isEqualTo(BpmnElementType.SERVICE_TASK.name());
-      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(processInstanceKey);
+      assertThat(elementRecord.get("state").asText()).isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
+      assertProcessInstanceRecord(
+          elementRecord.get("processInstanceRecord"),
+          "task",
+          BpmnElementType.SERVICE_TASK,
+          processInstanceKey);
       assertThat(instanceAsJson.get("childCount").asInt()).isEqualTo(0);
     }
 
     @Test
     public void shouldListElementInstanceDetails() throws JsonProcessingException {
       // given
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
-      final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
-      final var elementInstanceKey = 2251799813685263L;
-      final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processInstanceKey = metadata.processInstanceKey();
+      final var elementInstanceKey = metadata.elementInstanceKey();
+      final var processState = new InstanceState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var list = new ArrayList<String>();
 
       // when
@@ -1089,84 +976,50 @@ public class Version82Test {
       // then
       assertThat(list).hasSize(3);
 
-      JsonNode instanceAsJson = OBJECT_MAPPER.readTree(list.get(0));
-      JsonNode elementRecord = instanceAsJson.get("elementRecord");
-      assertThat(elementRecord.get("key").asLong()).isEqualTo(processInstanceKey);
-      assertThat(elementRecord.get("state").asText())
-          .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
-      JsonNode processInstanceRecord = elementRecord.get("processInstanceRecord");
-      assertThat(processInstanceRecord.get("bpmnProcessId").asText())
-          .isEqualTo(processInstanceEvent.getBpmnProcessId());
-      assertThat(processInstanceRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(processInstanceRecord.get("version").asInt())
-          .isEqualTo(processInstanceEvent.getVersion());
-      assertThat(processInstanceRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo("process");
-      assertThat(processInstanceRecord.get("bpmnElementType").asText())
-          .isEqualTo(BpmnElementType.PROCESS.name());
-      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(-1);
-      assertThat(instanceAsJson.get("childCount").asInt()).isEqualTo(2);
+      final var instancesByKey = new HashMap<Long, JsonNode>();
+      for (final var instanceJson : list) {
+        final var instance = OBJECT_MAPPER.readTree(instanceJson);
+        instancesByKey.put(instance.get("elementRecord").get("key").asLong(), instance);
+      }
 
-      String elementInstanceJson = list.get(1);
-      assertThat(elementInstanceJson).isNotNull();
-      instanceAsJson = OBJECT_MAPPER.readTree(elementInstanceJson);
-      elementRecord = instanceAsJson.get("elementRecord");
-      assertThat(elementRecord.get("key").asLong()).isEqualTo(2251799813685261L);
-      assertThat(elementRecord.get("state").asText())
+      final var processInstance = instancesByKey.get(processInstanceKey);
+      assertThat(processInstance).isNotNull();
+      assertThat(processInstance.get("childCount").asInt()).isEqualTo(2);
+      assertThat(processInstance.get("elementRecord").get("state").asText())
+          .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
+      assertProcessInstanceRecord(
+          processInstance.get("elementRecord").get("processInstanceRecord"),
+          "process",
+          BpmnElementType.PROCESS,
+          -1L);
+
+      final var incidentTaskInstance = instancesByKey.get(INCIDENT_TASK_ELEMENT_KEY);
+      assertThat(incidentTaskInstance).isNotNull();
+      assertThat(incidentTaskInstance.get("childCount").asInt()).isEqualTo(0);
+      assertThat(incidentTaskInstance.get("elementRecord").get("state").asText())
           .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATING.toString());
-      processInstanceRecord = elementRecord.get("processInstanceRecord");
-      assertThat(processInstanceRecord.get("bpmnProcessId").asText())
-          .isEqualTo(processInstanceEvent.getBpmnProcessId());
-      assertThat(processInstanceRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(processInstanceRecord.get("version").asInt())
-          .isEqualTo(processInstanceEvent.getVersion());
-      assertThat(processInstanceRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo("incidentTask");
-      assertThat(processInstanceRecord.get("bpmnElementType").asText())
-          .isEqualTo(BpmnElementType.SERVICE_TASK.name());
-      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(processInstanceKey);
-      assertThat(instanceAsJson.get("childCount").asInt()).isEqualTo(0);
+      assertProcessInstanceRecord(
+          incidentTaskInstance.get("elementRecord").get("processInstanceRecord"),
+          "incidentTask",
+          BpmnElementType.SERVICE_TASK,
+          processInstanceKey);
 
-      elementInstanceJson = list.get(2);
-      assertThat(elementInstanceJson).isNotNull();
-      instanceAsJson = OBJECT_MAPPER.readTree(elementInstanceJson);
-      elementRecord = instanceAsJson.get("elementRecord");
-      assertThat(elementRecord.get("key").asLong()).isEqualTo(elementInstanceKey);
-      assertThat(elementRecord.get("state").asText())
+      final var taskInstance = instancesByKey.get(elementInstanceKey);
+      assertThat(taskInstance).isNotNull();
+      assertThat(taskInstance.get("childCount").asInt()).isEqualTo(0);
+      assertThat(taskInstance.get("elementRecord").get("state").asText())
           .isEqualTo(ProcessInstanceIntent.ELEMENT_ACTIVATED.toString());
-      processInstanceRecord = elementRecord.get("processInstanceRecord");
-      assertThat(processInstanceRecord.get("bpmnProcessId").asText())
-          .isEqualTo(processInstanceEvent.getBpmnProcessId());
-      assertThat(processInstanceRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(processInstanceRecord.get("version").asInt())
-          .isEqualTo(processInstanceEvent.getVersion());
-      assertThat(processInstanceRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo("task");
-      assertThat(processInstanceRecord.get("bpmnElementType").asText())
-          .isEqualTo(BpmnElementType.SERVICE_TASK.name());
-      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1);
-      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(processInstanceKey);
-      assertThat(instanceAsJson.get("childCount").asInt()).isEqualTo(0);
+      assertProcessInstanceRecord(
+          taskInstance.get("elementRecord").get("processInstanceRecord"),
+          "task",
+          BpmnElementType.SERVICE_TASK,
+          processInstanceKey);
     }
 
     @Test
     public void shouldNotFailOnNonExistingProcessInstance() {
-      // given
-
       // when
-      final var processState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
+      final var processState = new InstanceState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var actualInstanceDetails = processState.getInstance(0xCAFE);
 
       // then
@@ -1176,60 +1029,49 @@ public class Version82Test {
     @Test
     public void shouldFindInstancesWithPredicate() {
       // given
-      final var instanceState =
-          new InstanceState(ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1"));
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
-      final var processInstanceKey = processInstanceEvent.getProcessInstanceKey();
+      final var instanceState = new InstanceState(ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION));
       final var processes = new HashMap<Long, String>();
 
       // when
       instanceState.listProcessInstances(
-          processInstanceRecordDetails ->
-              processInstanceRecordDetails.getBpmnProcessId().equals("process"),
+          processInstanceRecordDetails -> processInstanceRecordDetails.getBpmnProcessId().equals("process"),
           (key, valueJson) ->
               processes.put(
                   new UnsafeBuffer(key).getLong(Long.BYTES, ZeebeDbConstants.ZB_DB_BYTE_ORDER),
                   valueJson));
 
       // then
-      assertThat(processes).containsKey(processInstanceKey);
+      assertThat(processes).containsKey(metadata.processInstanceKey());
     }
 
     @Test
     public void shouldGetIncidentDetails() throws JsonProcessingException {
       // given
-      final var runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
-      final var incidentKey = 2251799813685264L;
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
+      final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION);
 
       // when
       final var incidentState = new IncidentState(runtimePath);
-      final var incidentAsJson = incidentState.incidentDetails(incidentKey);
+      final var incidentAsJson = incidentState.incidentDetails(metadata.incidentKey());
 
       // then
       assertThat(incidentAsJson).isNotNull();
       final var incident = OBJECT_MAPPER.readTree(incidentAsJson).get("incidentRecord");
       assertThat(incident.get("bpmnProcessId").asText()).isEqualTo("process");
-      assertThat(incident.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(incident.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(incident.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
+      assertThat(incident.get("processDefinitionKey").asLong()).isEqualTo(metadata.firstProcessKey());
+      assertThat(incident.get("processInstanceKey").asLong()).isEqualTo(metadata.processInstanceKey());
+      assertThat(incident.get("elementInstanceKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
       assertThat(incident.get("elementId").asText()).isEqualTo("incidentTask");
       assertThat(incident.get("errorMessage").asText())
           .isEqualTo("failed to evaluate expression '{bar:foo}': no variable found for name 'foo'");
-      assertThat(incident.get("errorType").asText())
-          .isEqualTo(ErrorType.IO_MAPPING_ERROR.toString());
-      assertThat(incident.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
-      assertThat(incident.get("jobKey").asLong()).isEqualTo(-1);
+      assertThat(incident.get("errorType").asText()).isEqualTo(ErrorType.IO_MAPPING_ERROR.toString());
+      assertThat(incident.get("variableScopeKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
+      assertThat(incident.get("jobKey").asLong()).isEqualTo(-1L);
     }
 
     @Test
     public void shouldListIncidentDetails() throws JsonProcessingException {
       // given
-      final var runtimePath = ZeebePaths.Companion.getRuntimePath(TEMP_DIR, "1");
-      final var incidentKey = 2251799813685264L;
-      final var processInstanceEvent = zeebeContentCreator.processInstanceEvent;
+      final var runtimePath = ZeebePaths.Companion.getRuntimePath(snapshotDir.toFile(), PARTITION);
       final var list = new ArrayList<String>();
 
       // when
@@ -1238,25 +1080,36 @@ public class Version82Test {
 
       // then
       assertThat(list).hasSize(1);
-      final var incidentAsJson = list.get(0);
-      assertThat(incidentAsJson).isNotNull();
-      final var incident = OBJECT_MAPPER.readTree(incidentAsJson);
-      assertThat(incident.get("key").asLong()).isEqualTo(incidentKey);
+      final var incident = OBJECT_MAPPER.readTree(list.get(0));
+      assertThat(incident.get("key").asLong()).isEqualTo(metadata.incidentKey());
       final var incidentRecord = incident.get("value").get("incidentRecord");
       assertThat(incidentRecord.get("bpmnProcessId").asText()).isEqualTo("process");
-      assertThat(incidentRecord.get("processDefinitionKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessDefinitionKey());
-      assertThat(incidentRecord.get("processInstanceKey").asLong())
-          .isEqualTo(processInstanceEvent.getProcessInstanceKey());
-      assertThat(incidentRecord.get("elementInstanceKey").asLong()).isEqualTo(2251799813685261L);
+      assertThat(incidentRecord.get("processDefinitionKey").asLong()).isEqualTo(metadata.firstProcessKey());
+      assertThat(incidentRecord.get("processInstanceKey").asLong()).isEqualTo(metadata.processInstanceKey());
+      assertThat(incidentRecord.get("elementInstanceKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
       assertThat(incidentRecord.get("elementId").asText()).isEqualTo("incidentTask");
       assertThat(incidentRecord.get("errorMessage").asText())
           .isEqualTo("failed to evaluate expression '{bar:foo}': no variable found for name 'foo'");
-      assertThat(incidentRecord.get("errorType").asText())
-          .isEqualTo(ErrorType.IO_MAPPING_ERROR.toString());
-      assertThat(incidentRecord.get("variableScopeKey").asLong()).isEqualTo(2251799813685261L);
-      assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1);
-      assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1);
+      assertThat(incidentRecord.get("errorType").asText()).isEqualTo(ErrorType.IO_MAPPING_ERROR.toString());
+      assertThat(incidentRecord.get("variableScopeKey").asLong()).isEqualTo(INCIDENT_TASK_ELEMENT_KEY);
+      assertThat(incidentRecord.get("jobKey").asLong()).isEqualTo(-1L);
+    }
+
+    private void assertProcessInstanceRecord(
+        final JsonNode processInstanceRecord,
+        final String elementId,
+        final BpmnElementType bpmnElementType,
+        final long flowScopeKey) {
+      assertThat(processInstanceRecord.get("bpmnProcessId").asText()).isEqualTo("process");
+      assertThat(processInstanceRecord.get("processDefinitionKey").asLong()).isEqualTo(metadata.firstProcessKey());
+      assertThat(processInstanceRecord.get("version").asInt()).isEqualTo(1);
+      assertThat(processInstanceRecord.get("processInstanceKey").asLong()).isEqualTo(metadata.processInstanceKey());
+      assertThat(processInstanceRecord.get("elementId").asText()).isEqualTo(elementId);
+      assertThat(processInstanceRecord.get("bpmnElementType").asText()).isEqualTo(bpmnElementType.name());
+      assertThat(processInstanceRecord.get("parentProcessInstanceKey").asLong()).isEqualTo(-1L);
+      assertThat(processInstanceRecord.get("parentElementInstanceKey").asLong()).isEqualTo(-1L);
+      assertThat(processInstanceRecord.get("flowScopeKey").asLong()).isEqualTo(flowScopeKey);
     }
   }
+
 }

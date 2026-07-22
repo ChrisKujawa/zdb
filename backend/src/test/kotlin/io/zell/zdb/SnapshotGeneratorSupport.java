@@ -33,21 +33,6 @@ public final class SnapshotGeneratorSupport {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static final Path SNAPSHOT_ROOT = Path.of("src/test/resources/zeebe-states");
 
-  private static final BpmnModelInstance PROCESS =
-      Bpmn.createExecutableProcess("process")
-          .startEvent()
-          .parallelGateway("gw")
-          .serviceTask("task")
-          .zeebeJobType("type")
-          .endEvent()
-          .moveToLastGateway()
-          .serviceTask("incidentTask")
-          .zeebeInputExpression("=foo", "bar")
-          .zeebeJobType("incidentTask")
-          .zeebeJobRetriesExpression("=foo")
-          .endEvent()
-          .done();
-
   private SnapshotGeneratorSupport() {}
 
   @FunctionalInterface
@@ -63,6 +48,17 @@ public final class SnapshotGeneratorSupport {
       final String dockerImage,
       final ContainerFactory containerFactory,
       final Logger logger) {
+    return startContainerAndCreateContent(
+        testClass, dockerImage, "incidentTask", true, containerFactory, logger);
+  }
+
+  public static GeneratorContext startContainerAndCreateContent(
+      final Class<?> testClass,
+      final String dockerImage,
+      final String incidentJobType,
+      final boolean includeRetriesExpression,
+      final ContainerFactory containerFactory,
+      final Logger logger) {
     final Path tempDir = TestUtils.newTmpFolder(testClass).toPath();
     try {
       Files.createDirectories(tempDir);
@@ -70,13 +66,46 @@ public final class SnapshotGeneratorSupport {
       throw new RuntimeException(e);
     }
 
-    final var zeebeContentCreator = new ZeebeContentCreator(PROCESS);
+    final var zeebeContentCreator =
+        new ZeebeContentCreator(createProcess(incidentJobType, includeRetriesExpression));
     final var zeebeContainer =
         containerFactory.create(DockerImageName.parse(dockerImage), tempDir.toString(), logger);
     zeebeContainer.start();
     zeebeContentCreator.createContent(zeebeContainer.getExternalGatewayAddress());
 
     return new GeneratorContext(tempDir, zeebeContainer, zeebeContentCreator);
+  }
+
+  private static BpmnModelInstance createProcess(
+      final String incidentJobType, final boolean includeRetriesExpression) {
+    if (includeRetriesExpression) {
+      return Bpmn.createExecutableProcess("process")
+          .startEvent()
+          .parallelGateway("gw")
+          .serviceTask("task")
+          .zeebeJobType("type")
+          .endEvent()
+          .moveToLastGateway()
+          .serviceTask("incidentTask")
+          .zeebeInputExpression("=foo", "bar")
+          .zeebeJobType(incidentJobType)
+          .zeebeJobRetriesExpression("=foo")
+          .endEvent()
+          .done();
+    }
+
+    return Bpmn.createExecutableProcess("process")
+        .startEvent()
+        .parallelGateway("gw")
+        .serviceTask("task")
+        .zeebeJobType("type")
+        .endEvent()
+        .moveToLastGateway()
+        .serviceTask("incidentTask")
+        .zeebeInputExpression("=foo", "bar")
+        .zeebeJobType(incidentJobType)
+        .endEvent()
+        .done();
   }
 
   public static void stopContainerAndCleanup(final GeneratorContext context) throws IOException {

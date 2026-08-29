@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Starts the zdb MCP server over stdio.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JAR="$SCRIPT_DIR/mcp-server/target/zdb-mcp-jar-with-dependencies.jar"
+if [ ! -f "$JAR" ]; then
+  echo "ERROR: zdb-mcp.jar not found at $JAR. Run 'mvn package -pl mcp-server -am -DskipTests' first." >&2
+  exit 1
+fi
+exec java -jar "$JAR" "$@"

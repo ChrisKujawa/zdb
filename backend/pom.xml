@@ -30,6 +30,10 @@
     <packaging>jar</packaging>
     <name>ZDB Backend</name>
 
+    <properties>
+        <surefire.excludedGroups>snapshot-generator</surefire.excludedGroups>
+    </properties>
+
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
@@ -82,8 +86,9 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <!-- snapshot-generator requires Docker and rewrites committed resources; run manually only -->
-                    <excludedGroups>snapshot-generator</excludedGroups>
+                    <!-- snapshot-generator requires Docker and rewrites committed resources; run manually only.
+                         Override on the command line with -Dsurefire.excludedGroups= to run generators. -->
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>

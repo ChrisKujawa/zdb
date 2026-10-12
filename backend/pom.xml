@@ -284,7 +284,7 @@
         <dependency>
             <groupId>io.camunda</groupId>
             <artifactId>zeebe-client-java</artifactId>
-            <version>${bom.version.zeebe}</version>
+            <version>8.9.23</version>
             <scope>test</scope>
         </dependency>
 

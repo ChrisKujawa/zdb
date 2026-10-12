@@ -3,4 +3,4 @@
 DIR="$(dirname "$0")"
 JAR="$DIR/zdb.jar"
 
-java -jar "$JAR" $@
+java --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED -jar "$JAR" $@

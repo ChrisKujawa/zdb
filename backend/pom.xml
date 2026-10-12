@@ -86,6 +86,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <argLine>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</argLine>
                     <!-- snapshot-generator requires Docker and rewrites committed resources; run manually only.
                          Override on the command line with -Dsurefire.excludedGroups= to run generators. -->
                     <excludedGroups>${surefire.excludedGroups}</excludedGroups>

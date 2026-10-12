@@ -201,6 +201,9 @@
                     </to>
                     <container>
                         <mainClass>io.zell.zdb.ZeebeDebugger</mainClass>
+                        <jvmFlags>
+                            <jvmFlag>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</jvmFlag>
+                        </jvmFlags>
                     </container>
                 </configuration>
             </plugin>

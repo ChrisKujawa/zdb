@@ -68,7 +68,7 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>zelldon-github</sonar.organization>
         <testcontainers.version>1.21.3</testcontainers.version>
-        <version.awaitility>4.3.0</version.awaitility>
+        <version.awaitility>4.4.0</version.awaitility>
         <version.guava>30.0-jre</version.guava>
         <version.jackson-dataformat-msgpack>0.8.21</version.jackson-dataformat-msgpack>
         <version.jackson>2.13.0</version.jackson>
